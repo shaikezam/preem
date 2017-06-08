@@ -1,4 +1,4 @@
-# is-null-or-empty
+# preem
 
 A Node.js package that checks whether a given string is null or empty. A basic package for an npm publish tutorial.
 
@@ -6,18 +6,18 @@ A Node.js package that checks whether a given string is null or empty. A basic p
 
 First, install the package using npm:
 
-    npm install is-null-or-empty --save
+    npm install preem --save
 
 Then, require the package and use it like so:
 
-    var isNullOrEmpty = require('is-null-or-empty');
+    var myPreem = require('is-null-or-empty');
 
-    console.log(isNullOrEmpty("")); // true
-    console.log(isNullOrEmpty(null)); // true
-    console.log(isNullOrEmpty(undefined)); // true
+    console.log(myPreem("")); // true
+    console.log(myPreem(null)); // true
+    console.log(myPreem(undefined)); // true
 
-    console.log(isNullOrEmpty("Hello World")); // false
+    console.log(myPreem("Hello World")); // false
 
 ## License
 
-Apache 2.0
+MIT
