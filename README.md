@@ -10,7 +10,7 @@ First, install the package using npm:
 
 Then, require the package and use it like so:
 
-    var myPreem = require('is-null-or-empty');
+    var myPreem = require('preem');
 
     console.log(myPreem("")); // true
     console.log(myPreem(null)); // true
