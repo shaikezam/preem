@@ -8,7 +8,7 @@ First, install the package using npm:
 
     npm install preem --save
 
-Then, require the package and use it like so:
+Then, require the package and use it like so :
 
     var myPreem = require('preem');
 
