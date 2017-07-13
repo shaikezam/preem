@@ -1,6 +1,6 @@
 # preem
 
-A Node.js package that checks whether a given string is null or empty. A basic package for an npm publish tutorial.
+A lightwhight, easy-to-use library for unit and integration testing javascript code.
 
 ## Usage
 
@@ -8,7 +8,7 @@ First, install the package using npm:
 
     npm install preem --save
 
-Then, require the package and use it like so :
+Then, require the package and use it like so:
 
     let preem = require('preem');
 
