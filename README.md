@@ -26,7 +26,7 @@ Then, require the package and use it like so:
 
     preem.checkIf(n1).isEqualTo(n2, "Numbers are equal", "Numbers aren't equal"); // Numbers are equal
 
-    preem.checkIf(arr).isIncludes(s1, arr + " includes 'World'", "Array isn't includes 'World'"); // Hello,World,foo includes 'World' 
+    preem.checkIf(arr).isIncludes(s1, arr + " includes " + s1, arr + " isn't includes " + s1); // Hello,World,foo includes Hello 
 
     preem.start();
 
