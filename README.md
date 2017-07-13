@@ -10,7 +10,7 @@ First, install the package using npm:
 
 Then, require the package and use it like so:
 
-    let Preem = require('./preem');
+    let Preem = require('preem');
 
     let preem = new Preem({
         testType: Preem.CONSTANTS.TESTTYPE.SYNC
