@@ -1,6 +1,6 @@
 # preem
 
-A lightwhight, easy-to-use library for unit and integration testing javascript code.
+A lightweight, easy-to-use library for unit and integration testing javascript code.
 
 ## Usage
 
