@@ -28,23 +28,39 @@ class Preem {
         }
     }
 
-    explain(sDescription) {
+    checkIf(oTestedObject) {
         return {
-            equal: function(expected, actual, sPassString, sFailsString) {
-                if (!(expected instanceof Object && actual instanceof Object)) {
-                    this.oQueue.enqueue({
-                        fn: this._fnPrimitiveEquality,
-                        args: [expected, actual, sPassString, sFailsString]
-                    });
-                }
+            isEqualTo: function(actual, sPassString, sFailsString) {
+                this.oQueue.enqueue({
+                    fn: this._fnEqual,
+                    args: [oTestedObject, actual, sPassString, sFailsString]
+                });
             }.bind(this),
+            isNotEqualTo: function(actual, sPassString, sFailsString) {
+                this.oQueue.enqueue({
+                    fn: this._fnNotEqual,
+                    args: [oTestedObject, actual, sPassString, sFailsString]
+                });
+            }.bind(this),
+            isIncludes: function(args, sPassString, sFailsString) {
+                this.oQueue.enqueue({
+                    fn: this._fnInclude,
+                    args: [oTestedObject, args, sPassString, sFailsString]
+                });
+            }.bind(this)
         }
     }
+    
+    _fnNotEqual(expected, actual, sPassString, sFailsString) {
+        expected !== actual ? console.log(sPassString.green) : console.log(sFailsString.red);
+    }
 
-    _fnPrimitiveEquality(expected, actual, sPassString, sFailsString) {
-        if (!(expected instanceof Object && actual instanceof Object)) {
-            expected === actual ? console.log(sPassString.green) : console.log(sFailsString.red);
-        }
+    _fnEqual(expected, actual, sPassString, sFailsString) {
+        expected === actual ? console.log(sPassString.green) : console.log(sFailsString.red);
+    }
+
+    _fnInclude(oTestedArray, oTestedObject, sPassString, sFailsString) {
+        oTestedArray.includes(oTestedObject) ? console.log(sPassString.green) : console.log(sFailsString.red);
     }
 
     setQueue() {

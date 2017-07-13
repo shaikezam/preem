@@ -1,6 +1,6 @@
 # preem
 
-A lightweight, easy-to-use library for unit and integration testing javascript code.
+Lightweight, easy-to-use JavaScript test library
 
 ## Usage
 
@@ -13,12 +13,21 @@ Then, require the package and use it like so:
     let preem = require('preem');
 
     let s1 = "Hello",
-        s2 = "World",
-        n1 = 1,
+        s2 = "World";
+    preem.checkIf(s1).isNotEqualTo(s2, "Strings aren't equal", "Strings are equal"); // Strings aren't equal
+    
+Or, you can use with isEqualTo:
+
+    let n1 = 1,
         n2 = 1,
-        c1 = '3',
-        c3 = 'f';
-    preem.when("Test primitive types").equal(s1, s2, "Strings are equal", "Strings aren't equal").equal(n1, n2, "Numbers are equal", "Numbers aren't equal").equal(c1, c3, "Character are equal", "Character aren't equal");
+    preem.checkIf(n1).isEqualTo(n2, "Numbers are equal", "Numbers aren't equal"); // Numbers are equal
+    
+For testing Arrays:
+
+    let s1 = "Hello",
+        arr = ['Hello', 'World', 'foo'];
+    // same goes for strings includes
+    preem.checkIf(arr).isIncludes(s1, arr + " includes 'World'", "Array isn't includes 'World'"); // Hello,World,foo includes 'World' 
 
 ## License
 
