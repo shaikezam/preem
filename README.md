@@ -52,7 +52,11 @@ Installing requirening and using with npm:
 
     preem.start();
     ```
-
+```javascript
+let o1 = {
+    a2: 'b2'
+    }
+```    
 *Stay tuned for more updates soon*
 
 ## License
