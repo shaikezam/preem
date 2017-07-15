@@ -26,6 +26,6 @@ preem.checkIf(n1).isEqualTo(n2, "Numbers are equal", "Numbers aren't equal"); //
 
 preem.checkIf(arr).isIncludes(s1, arr + " includes " + s1, arr + " isn't includes " + s1); // Hello,World,foo includes Hello 
 
-preem.checkIf(o1).isDeepEqual(o2, "Object are equal", "Object arn't equal"); // Object are equal 
+preem.checkIf(o1).isDeepEqualTo(o2, "Object are equal", "Object arn't equal"); // Object are equal 
 
 preem.start();

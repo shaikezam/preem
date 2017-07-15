@@ -50,7 +50,7 @@ let o1 = {
         a2: 'b2'
     };
 
-preem.checkIf(o1).isDeepEqual(o2, "Object are equal", "Object arn't equal"); // Object are equal 
+preem.checkIf(o1).isDeepEqualTo(o2, "Object are equal", "Object arn't equal"); // Object are equal 
 
 preem.start();
 ```

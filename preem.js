@@ -48,7 +48,7 @@ class Preem {
                     args: [oTestedObject, args, sPassString, sFailsString]
                 });
             }.bind(this),
-            isDeepEqual: function (actual, sPassString, sFailsString) {
+            isDeepEqualTo: function (actual, sPassString, sFailsString) {
                 this.oQueue.enqueue({
                     fn: this._fnObjectsEquality,
                     args: [oTestedObject, actual, sPassString, sFailsString]
