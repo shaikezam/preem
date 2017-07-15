@@ -30,46 +30,56 @@ class Preem {
 
     checkIf(oTestedObject) {
         return {
-            isEqualTo: function(actual, sPassString, sFailsString) {
+            isEqualTo: function (actual, sPassString, sFailsString) {
                 this.oQueue.enqueue({
                     fn: this._fnEqual,
                     args: [oTestedObject, actual, sPassString, sFailsString]
                 });
             }.bind(this),
-            isNotEqualTo: function(actual, sPassString, sFailsString) {
+            isNotEqualTo: function (actual, sPassString, sFailsString) {
                 this.oQueue.enqueue({
                     fn: this._fnNotEqual,
                     args: [oTestedObject, actual, sPassString, sFailsString]
                 });
             }.bind(this),
-            isIncludes: function(args, sPassString, sFailsString) {
+            isIncludes: function (args, sPassString, sFailsString) {
                 this.oQueue.enqueue({
                     fn: this._fnInclude,
                     args: [oTestedObject, args, sPassString, sFailsString]
                 });
+            }.bind(this),
+            isDeepEqual: function (actual, sPassString, sFailsString) {
+                this.oQueue.enqueue({
+                    fn: this._fnObjectsEquality,
+                    args: [oTestedObject, actual, sPassString, sFailsString]
+                });
             }.bind(this)
         }
     }
-    
+
     _fnNotEqual(expected, actual, sPassString, sFailsString) {
-        expected !== actual ? console.log(sPassString.green) : console.log(sFailsString.red);
+        expected !== actual ? this._passTest(sPassString) : this._failTest(sFailsString);
     }
 
     _fnEqual(expected, actual, sPassString, sFailsString) {
-        expected === actual ? console.log(sPassString.green) : console.log(sFailsString.red);
+        expected === actual ? this._passTest(sPassString) : this._failTest(sFailsString);
     }
 
     _fnInclude(oTestedArray, oTestedObject, sPassString, sFailsString) {
-        oTestedArray.includes(oTestedObject) ? console.log(sPassString.green) : console.log(sFailsString.red);
+        oTestedArray.includes(oTestedObject) ? this._passTest(sPassString) : this._failTest(sFailsString);
+    }
+
+    _fnObjectsEquality(expected, actual, sPassString, sFailsString) {
+        JSON.stringify(expected) === JSON.stringify(actual) ? this._passTest(sPassString) : this._failTest(sFailsString);
     }
 
     setQueue() {
         this.oQueue = {
             _arr: [],
-            enqueue: function(node) {
+            enqueue: function (node) {
                 this._arr.push(node);
             },
-            dequeue: function() {
+            dequeue: function () {
                 let temp = null;
                 if (!this.isEmpty()) {
                     temp = this._arr[0];
@@ -77,13 +87,13 @@ class Preem {
                 }
                 return temp;
             },
-            isEmpty: function() {
+            isEmpty: function () {
                 return this._arr.length === 0;
             },
-            peek: function() {
+            peek: function () {
                 return this._arr[0];
             },
-            removeQueue: function() {
+            removeQueue: function () {
                 this._arr.length = 0;
             }
         }
@@ -96,10 +106,18 @@ class Preem {
         return this.oQueue;
     }
 
+    _passTest(sPassString) {
+        console.log(sPassString.green);
+    }
+
+    _failTest(sFailsString) {
+        throw new Error(sFailsString);
+    }
+
     addDeferred(fn, arg) {
         let _dft = {
-            deferred: function() {
-                this.oDeferred = $.Deferred().done(function() {
+            deferred: function () {
+                this.oDeferred = $.Deferred().done(function () {
                     this.clearTimeout();
                     console.log("Fail");
                     let oQueue = Preem.getInstance().oQueue;
@@ -109,15 +127,15 @@ class Preem {
                         Preem.getInstance().stopNetworkManager();
                     }
 
-                }.bind(this)).fail(function() {
+                }.bind(this)).fail(function () {
                     this.clearTimeout();
                     console.error("Fail");
                 }.bind(this));
                 this._startTimeout();
                 return this.oDeferred;
             },
-            _startInterval: function() {
-                this.iIntervalId = setInterval(function() {
+            _startInterval: function () {
+                this.iIntervalId = setInterval(function () {
                     let returnBool = this.fn.apply(this, this.arg);
 
                     if (returnBool) {
@@ -125,14 +143,14 @@ class Preem {
                     }
                 }.bind(this), 200);
             },
-            _startTimeout: function() {
+            _startTimeout: function () {
                 this._startInterval();
-                this.iTimeoutId = setTimeout(function() {
+                this.iTimeoutId = setTimeout(function () {
                     window.clearInterval(this.iIntervalId);
                     this.oDeferred.reject();
                 }.bind(this), 8000);
             },
-            clearTimeout: function() {
+            clearTimeout: function () {
                 window.clearInterval(this.iIntervalId);
                 window.clearTimeout(this.iTimeoutId);
             },
