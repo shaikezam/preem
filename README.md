@@ -6,11 +6,13 @@ Lightweight, easy-to-use JavaScript test library
 
 Installing requirening and using with npm:
 
-    npm install preem
+```
+npm install preem
     
-    let Preem = require('preem');
+let Preem = require('preem');
 
-    let preem = new Preem();
+let preem = new Preem();
+```
 
 ### Primitive types testing:
 
