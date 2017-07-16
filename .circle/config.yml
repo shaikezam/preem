@@ -1,0 +1,12 @@
+general:
+    build_dir: ./
+checkout:
+    post:
+        - git submodule sync
+        - git submodule update --init
+dependencies:
+    pre:
+        - npm install
+test:
+    override:
+        - npm test
