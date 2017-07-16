@@ -49,6 +49,12 @@ class Preem {
                     args: [oTestedObject, args, sPassString, sFailsString]
                 });
             }.bind(this),
+            isNotIncludes: function (args, sPassString, sFailsString) {
+                this.oQueue.enqueue({
+                    fn: this._fnNotInclude,
+                    args: [oTestedObject, args, sPassString, sFailsString]
+                });
+            }.bind(this),
             isDeepEqualTo: function (actual, sPassString, sFailsString) {
                 this.oQueue.enqueue({
                     fn: this._fnObjectsEquality,
@@ -68,6 +74,10 @@ class Preem {
 
     _fnInclude(oTestedArray, oTestedObject, sPassString, sFailsString) {
         oTestedArray.indexOf(oTestedObject) >= 0 ? this._passTest(sPassString) : this._failTest(sFailsString);
+    }
+    
+    _fnNotInclude(oTestedArray, oTestedObject, sPassString, sFailsString) {
+        oTestedArray.indexOf(oTestedObject) === -1 ? this._passTest(sPassString) : this._failTest(sFailsString);
     }
 
     _fnObjectsEquality(expected, actual, sPassString, sFailsString) {
@@ -100,6 +110,11 @@ class Preem {
         }
     }
 
+    describe (sDescription, fn) {
+        console.log(sDescription);
+        fn();
+    }    
+    
     getQueue() {
         if (!this.oQueue) {
             this.setQueue();
