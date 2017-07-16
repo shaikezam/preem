@@ -1,3 +1,4 @@
+"use strict";
 class Preem {
 
     constructor(oConfig) {
@@ -66,7 +67,7 @@ class Preem {
     }
 
     _fnInclude(oTestedArray, oTestedObject, sPassString, sFailsString) {
-        oTestedArray.includes(oTestedObject) ? this._passTest(sPassString) : this._failTest(sFailsString);
+        oTestedArray.indexOf(oTestedObject) >= 0 ? this._passTest(sPassString) : this._failTest(sFailsString);
     }
 
     _fnObjectsEquality(expected, actual, sPassString, sFailsString) {

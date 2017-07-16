@@ -7,6 +7,7 @@ Lightweight, easy-to-use JavaScript test library
 Installing requirening and using with npm:
 
 ```
+"use strict";
 npm install preem
     
 let Preem = require('preem');
@@ -17,6 +18,7 @@ let preem = new Preem();
 ### Primitive types testing:
 
 ```javascript
+"use strict";
 let s1 = "Hello",
     s2 = "World",
     n1 = 1,
@@ -31,6 +33,7 @@ preem.start();
 ### Array testing:
 
 ```javascript
+"use strict";
 let arr = ['Hello', 'World', 'foo'];
 
 preem.checkIf(arr).isIncludes(s1, arr + " includes " + s1, arr + " isn't includes " + s1); // Hello,World,foo includes Hello 
@@ -41,6 +44,7 @@ preem.start();
 ### Objetcs testing:
 
 ```javascript
+"use strict";
 let o1 = {
         a1: 'b1',
         a2: 'b2'
