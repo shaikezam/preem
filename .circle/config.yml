@@ -1,5 +1,5 @@
 general:
-    build_dir: ./
+    build_dir: ../
 checkout:
     post:
         - git submodule sync
