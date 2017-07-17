@@ -5,6 +5,7 @@ class Preem {
         require('colors');
         this._setConfig(oConfig);
         this.setQueue();
+        this.aQueues = [];
     }
 
     start() {
@@ -23,35 +24,46 @@ class Preem {
     }
 
     _handleSyncTest() {
-        while (!this.oQueue.isEmpty()) {
-            let oSyncTest = this.oQueue.dequeue();
-            oSyncTest.fn.apply(this, oSyncTest.args);
+        for (let i = 0; i < this.aQueues.length; i++) {
+            let oQueue = this.aQueues[i];
+            console.log(oQueue.description);
+            while (!oQueue.isEmpty()) {
+                let oSyncTest = oQueue.dequeue();
+                oSyncTest.fn.apply(this, oSyncTest.args);
+            }
         }
     }
 
     checkIf(oTestedObject) {
+        let oPreem = new Preem();
         return {
             isEqualTo: function (actual, sPassString, sFailsString) {
-                this.oQueue.enqueue({
-                    fn: this._fnEqual,
+                this.iQueue.enqueue({
+                    fn: this.oPreem._fnEqual.bind(this.oPreem),
                     args: [oTestedObject, actual, sPassString, sFailsString]
                 });
             }.bind(this),
             isNotEqualTo: function (actual, sPassString, sFailsString) {
-                this.oQueue.enqueue({
-                    fn: this._fnNotEqual,
+                this.iQueue.enqueue({
+                    fn: this.oPreem._fnNotEqual.bind(this.oPreem),
                     args: [oTestedObject, actual, sPassString, sFailsString]
                 });
             }.bind(this),
             isIncludes: function (args, sPassString, sFailsString) {
-                this.oQueue.enqueue({
-                    fn: this._fnInclude,
+                this.iQueue.enqueue({
+                    fn: this.oPreem._fnInclude.bind(this.oPreem),
+                    args: [oTestedObject, args, sPassString, sFailsString]
+                });
+            }.bind(this),
+            isNotIncludes: function (args, sPassString, sFailsString) {
+                this.iQueue.enqueue({
+                    fn: this.oPreem._fnNotInclude.bind(this.oPreem),
                     args: [oTestedObject, args, sPassString, sFailsString]
                 });
             }.bind(this),
             isDeepEqualTo: function (actual, sPassString, sFailsString) {
-                this.oQueue.enqueue({
-                    fn: this._fnObjectsEquality,
+                this.iQueue.enqueue({
+                    fn: this.oPreem._fnObjectsEquality.bind(this.oPreem),
                     args: [oTestedObject, actual, sPassString, sFailsString]
                 });
             }.bind(this)
@@ -70,12 +82,16 @@ class Preem {
         oTestedArray.indexOf(oTestedObject) >= 0 ? this._passTest(sPassString) : this._failTest(sFailsString);
     }
 
+    _fnNotInclude(oTestedArray, oTestedObject, sPassString, sFailsString) {
+        oTestedArray.indexOf(oTestedObject) === -1 ? this._passTest(sPassString) : this._failTest(sFailsString);
+    }
+
     _fnObjectsEquality(expected, actual, sPassString, sFailsString) {
         JSON.stringify(expected) === JSON.stringify(actual) ? this._passTest(sPassString) : this._failTest(sFailsString);
     }
 
-    setQueue() {
-        this.oQueue = {
+    createQueue(sDescription) {
+        return {
             _arr: [],
             enqueue: function (node) {
                 this._arr.push(node);
@@ -96,8 +112,21 @@ class Preem {
             },
             removeQueue: function () {
                 this._arr.length = 0;
-            }
+            },
+            description: sDescription
         }
+    }
+
+    setQueue() {
+        this.oQueue = this.createQueue('temp');
+    }
+
+    testModule(sDescription, fn) {
+        this.aQueues.push(this.createQueue(sDescription));
+        fn(this.checkIf.bind({
+            oPreem: this,
+            iQueue: this.aQueues[this.aQueues.length - 1]
+        }));
     }
 
     getQueue() {
