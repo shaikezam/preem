@@ -23,7 +23,7 @@ preem.testModule("Test Arrays", function(checkIf) {
 
     let arr = ['Hello', 'World', 'foo'],
         s1 = "Hello",
-        s2 = "bla";
+        s2 = "Hello";
 
     checkIf(arr).isIncludes(s1, arr + " includes " + s1, arr + " isn't includes " + s1); // Hello,World,foo includes Hello 
 
