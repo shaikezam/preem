@@ -8,7 +8,7 @@ Lightweight, easy-to-use JavaScript test library
 
 Installing requirening and using with npm:
 
-```
+```javascript
 "use strict";
 
 npm install preem
@@ -16,6 +16,22 @@ npm install preem
 let Preem = require('preem');
 
 let preem = new Preem();
+```
+
+Preem constructor parameters (**Not mandatory**, can leave it empty):
+
+```javascript
+"use strict";
+
+let preem = new Preem({
+    type: //type of the test: [Preem.CONSTANTS.TESTTYPE.SYNC || Preem.CONSTANTS.TESTTYPE.ASYNC], default Preem.CONSTANTS.TESTTYPE.SYNC
+    onStart: function() {
+        //callback function, fires before starting the test, default null
+    },
+    onFinish: function() {
+        //callback function, fires after finishing the test, default null
+    }
+});
 ```
 
 ### Primitive types testing:

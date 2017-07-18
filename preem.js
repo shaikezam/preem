@@ -10,20 +10,35 @@ class Preem {
 
     start() {
 
-        if (this.oConfig.testType === Preem.CONSTANTS.TESTTYPE.SYNC) {
+        if (this.oConfig.type === Preem.CONSTANTS.TESTTYPE.SYNC) {
             this._handleSyncTest();
         } else {
             this.oQueue.dequeue().deferred();
         }
     }
+    
+    _handleDone() {
+        if (this.oConfig.onFinish) {
+            this.oConfig.onFinish();
+        }
+    }
+    
+    _handleStart() {
+        if (this.oConfig.onStart) {
+            this.oConfig.onStart();
+        }
+    }
 
     _setConfig(_oConfig) {
         this.oConfig = {
-            testType: _oConfig ? _oConfig.testType || Preem.CONSTANTS.TESTTYPE.SYNC : Preem.CONSTANTS.TESTTYPE.SYNC
+            type: _oConfig ? _oConfig.type || Preem.CONSTANTS.TESTTYPE.SYNC : Preem.CONSTANTS.TESTTYPE.SYNC,
+            onFinish: _oConfig ? _oConfig.onFinish || null : null,
+            onStart: _oConfig ? _oConfig.onStart || null : null
         };
     }
 
     _handleSyncTest() {
+        this._handleStart();
         for (let i = 0; i < this.aQueues.length; i++) {
             let oQueue = this.aQueues[i];
             console.log(oQueue.description);
@@ -32,10 +47,10 @@ class Preem {
                 oSyncTest.fn.apply(this, oSyncTest.args);
             }
         }
+        this._handleDone();
     }
 
     checkIf(oTestedObject) {
-        let oPreem = new Preem();
         return {
             isEqualTo: function (actual, sPassString, sFailsString) {
                 this.iQueue.enqueue({
@@ -194,7 +209,7 @@ class Preem {
         return {
             TESTTYPE: {
                 SYNC: 'SYNC',
-                ASNYC: 'ASYNC'
+                ASYNC: 'ASYNC'
             }
         };
     }

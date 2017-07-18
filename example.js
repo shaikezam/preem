@@ -4,7 +4,13 @@
 let Preem = require('./preem');
 
 let preem = new Preem({
-    testType: Preem.CONSTANTS.TESTTYPE.SYNC
+    type: Preem.CONSTANTS.TESTTYPE.SYNC,
+    onStart: function() {
+        console.log("***TESTS STARTED***");
+    },
+    onFinish: function() {
+        console.log("***TESTS FINISHED***");
+    }
 });
 
 preem.testModule("Test primitive types", function(checkIf) {
