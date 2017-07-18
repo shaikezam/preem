@@ -200,4 +200,4 @@ class Preem {
     }
 };
 
-module.exports = Preem;
+module.exports = global.Preem = Preem;

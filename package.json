@@ -1,24 +1,29 @@
 {
-    "name": "preem",
-    "version": "0.0.3",
-    "description": "",
-    "main": "preem.js",
-    "scripts": {
-        "test": "node example.js"
-    },
-    "dependencies": {
-        "colors": "1.1.2"
-    },
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/shaikezam/preem"
-    },
-    "author": "Shay Zambrovski shaike.zam@gmail.com",
-    "license": "MIT",
-    "keywords": [
-        "testing",
-        "unit",
-        "integration",
-        "test"
-    ]
+  "name": "preem",
+  "version": "0.0.3",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "node example.js"
+  },
+  "dependencies": {
+    "colors": "1.1.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shaikezam/preem"
+  },
+  "author": "Shay Zambrovski shaike.zam@gmail.com",
+  "license": "MIT",
+  "keywords": [
+    "testing",
+    "unit",
+    "integration",
+    "test"
+  ],
+  "devDependencies": {
+    "babel-core": "^6.25.0",
+    "babel-loader": "^7.1.1",
+    "babel-preset-es2015": "^6.24.1"
+  }
 }
