@@ -1,6 +1,6 @@
 {
   "name": "preem",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -20,10 +20,5 @@
     "unit",
     "integration",
     "test"
-  ],
-  "devDependencies": {
-    "babel-core": "^6.25.0",
-    "babel-loader": "^7.1.1",
-    "babel-preset-es2015": "^6.24.1"
-  }
+  ]
 }
