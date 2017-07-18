@@ -1,7 +1,7 @@
 module.exports = {
     entry: './preem.js',
     output: {
-        filename: 'preem.js'
+        filename: 'bundle.js'
     },
     module: {
         loaders: [{

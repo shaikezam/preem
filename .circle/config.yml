@@ -10,3 +10,10 @@ dependencies:
 test:
     override:
         - npm test
+deployment:
+  aws:
+    branch: master
+    commands:
+      - chmod +x deploy.sh
+      - webpack
+      - ./deploy.sh
