@@ -56,31 +56,31 @@ class Preem {
 
     checkIf(oTestedObject) {
         return {
-            isEqualTo: function(actual, sPassString, sFailsString) {
+            isEqualTo: function (actual, sPassString, sFailsString) {
                 this.oQueue.enqueue({
                     fn: this.oPreem._fnEqual.bind(this.oPreem),
                     args: [oTestedObject, actual, sPassString, sFailsString]
                 });
             }.bind(this),
-            isNotEqualTo: function(actual, sPassString, sFailsString) {
+            isNotEqualTo: function (actual, sPassString, sFailsString) {
                 this.oQueue.enqueue({
                     fn: this.oPreem._fnNotEqual.bind(this.oPreem),
                     args: [oTestedObject, actual, sPassString, sFailsString]
                 });
             }.bind(this),
-            isIncludes: function(args, sPassString, sFailsString) {
+            isIncludes: function (args, sPassString, sFailsString) {
                 this.oQueue.enqueue({
                     fn: this.oPreem._fnInclude.bind(this.oPreem),
                     args: [oTestedObject, args, sPassString, sFailsString]
                 });
             }.bind(this),
-            isNotIncludes: function(args, sPassString, sFailsString) {
+            isNotIncludes: function (args, sPassString, sFailsString) {
                 this.oQueue.enqueue({
                     fn: this.oPreem._fnNotInclude.bind(this.oPreem),
                     args: [oTestedObject, args, sPassString, sFailsString]
                 });
             }.bind(this),
-            isDeepEqualTo: function(actual, sPassString, sFailsString) {
+            isDeepEqualTo: function (actual, sPassString, sFailsString) {
                 this.oQueue.enqueue({
                     fn: this.oPreem._fnObjectsEquality.bind(this.oPreem),
                     args: [oTestedObject, actual, sPassString, sFailsString]
@@ -88,7 +88,7 @@ class Preem {
             }.bind(this)
         }
     }
-    
+
     beforeEach(fnCallback) {
         this.oQueue.beforeEach = fnCallback;
     }
@@ -116,10 +116,10 @@ class Preem {
     createQueue(sDescription, beforeEach) {
         return {
             _arr: [],
-            enqueue: function(node) {
+            enqueue: function (node) {
                 this._arr.push(node);
             },
-            dequeue: function() {
+            dequeue: function () {
                 let temp = null;
                 if (!this.isEmpty()) {
                     temp = this._arr[0];
@@ -127,13 +127,13 @@ class Preem {
                 }
                 return temp;
             },
-            isEmpty: function() {
+            isEmpty: function () {
                 return this._arr.length === 0;
             },
-            peek: function() {
+            peek: function () {
                 return this._arr[0];
             },
-            removeQueue: function() {
+            removeQueue: function () {
                 this._arr.length = 0;
             },
             description: sDescription,
@@ -147,10 +147,10 @@ class Preem {
 
     testModule(sDescription, fn) {
         this.aQueues.push(this.createQueue(sDescription));
-        fn(this.checkIf.bind({
+        fn(this.beforeEach.bind({
             oPreem: this,
             oQueue: this.aQueues[this.aQueues.length - 1]
-        }), this.beforeEach.bind({
+        }), this.checkIf.bind({
             oPreem: this,
             oQueue: this.aQueues[this.aQueues.length - 1]
         }));
@@ -173,8 +173,8 @@ class Preem {
 
     addDeferred(fn, arg) {
         let _dft = {
-            deferred: function() {
-                this.oDeferred = $.Deferred().done(function() {
+            deferred: function () {
+                this.oDeferred = $.Deferred().done(function () {
                     this.clearTimeout();
                     console.log("Fail");
                     let oQueue = Preem.getInstance().oQueue;
@@ -184,15 +184,15 @@ class Preem {
                         Preem.getInstance().stopNetworkManager();
                     }
 
-                }.bind(this)).fail(function() {
+                }.bind(this)).fail(function () {
                     this.clearTimeout();
                     console.error("Fail");
                 }.bind(this));
                 this._startTimeout();
                 return this.oDeferred;
             },
-            _startInterval: function() {
-                this.iIntervalId = setInterval(function() {
+            _startInterval: function () {
+                this.iIntervalId = setInterval(function () {
                     let returnBool = this.fn.apply(this, this.arg);
 
                     if (returnBool) {
@@ -200,14 +200,14 @@ class Preem {
                     }
                 }.bind(this), 200);
             },
-            _startTimeout: function() {
+            _startTimeout: function () {
                 this._startInterval();
-                this.iTimeoutId = setTimeout(function() {
+                this.iTimeoutId = setTimeout(function () {
                     window.clearInterval(this.iIntervalId);
                     this.oDeferred.reject();
                 }.bind(this), 8000);
             },
-            clearTimeout: function() {
+            clearTimeout: function () {
                 window.clearInterval(this.iIntervalId);
                 window.clearTimeout(this.iTimeoutId);
             },

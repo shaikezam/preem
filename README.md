@@ -39,7 +39,7 @@ let preem = new Preem({
 ```javascript
 "use strict";
 
-preem.testModule("Test primitive types", function(checkIf, beforeEach) {
+preem.testModule("Test primitive types", function(beforeEach, checkIf) {
 
     let s1 = "Hello",
         s2 = "World",
@@ -62,7 +62,7 @@ preem.start();
 ```javascript
 "use strict";
 
-preem.testModule("Test Arrays", function(checkIf, beforeEach) {
+preem.testModule("Test Arrays", function(beforeEach, checkIf) {
 
     let arr = ['Hello', 'World', 'foo'],
         s1 = "Hello",
@@ -85,7 +85,7 @@ preem.start();
 ```javascript
 "use strict";
 
-preem.testModule("Test Objects", function(checkIf, beforeEach) {
+preem.testModule("Test Objects", function(beforeEach, checkIf) {
 
     let o1 = {
             a1: 'b1',
