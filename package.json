@@ -1,8 +1,8 @@
 {
   "name": "preem",
-  "version": "0.0.51",
+  "version": "0.0.52",
   "description": "",
-  "main": "index.js",
+  "main": "preem.js",
   "scripts": {
     "test": "node example.js"
   },
