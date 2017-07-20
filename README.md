@@ -8,7 +8,7 @@ Lightweight, easy-to-use JavaScript test library
 Install preem:
 
 ```javascript
-"use strict";
+npm install preem
 ```
 
 Requirening and using:
