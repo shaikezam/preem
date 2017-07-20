@@ -39,7 +39,7 @@ let preem = new Preem({
 
 ### testModule function:
 
-Function to create tests that have a common issue
+Function for creating tests that have a common topic
 
 ```javascript
 "use strict";
@@ -70,7 +70,7 @@ preem.start();
 
 ```
 
-start the test - **need to be called after writing all the tests**
+Function for starting the test - **need to be called after writing all the tests**
 
 ## Examples
 
