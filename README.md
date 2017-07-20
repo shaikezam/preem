@@ -5,13 +5,16 @@ Lightweight, easy-to-use JavaScript test library
 [![Build Status](http://circleci-badges-max.herokuapp.com/img/shaikezam/preem/master?token=:circle-ci-token)](https://circleci.com/gh/shaikezam/preem/tree/master)
 
 ## Usage
-
-Installing requirening and using with npm:
+Install preem:
 
 ```javascript
 "use strict";
+```
 
-npm install preem
+Requirening and using:
+
+```javascript
+"use strict";
     
 let Preem = require('preem');
 
@@ -33,6 +36,21 @@ let preem = new Preem({
     }
 });
 ```
+
+### testModule function:
+
+Function to create tests that have a common scope
+
+```
+"use strict";
+
+preem.testModule(/* test module description */, function(beforeEach, checkIf) {
+
+    **beforeEach**: receives a callback function that can performs operations before each CheckIf function
+    
+    **checkIf**: receives the tested parameter, return object of pre-defined functions:
+    
+});
 
 ### Primitive types testing:
 
