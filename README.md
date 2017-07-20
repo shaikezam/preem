@@ -21,7 +21,7 @@ let Preem = require('preem');
 let preem = new Preem();
 ```
 
-Preem constructor parameters (**Not mandatory**, can leave it empty):
+Preem constructor parameters (**Not mandatory** to pass an object, have default values):
 
 ```javascript
 "use strict";
