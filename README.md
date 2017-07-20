@@ -61,7 +61,6 @@ preem.testModule(/* test module description */, function(beforeEach, checkIf) {
 - isDeepEqualTo - test *checkIf* object is equal to another object.
 - isNotDeepEqualTo - test *checkIf* object is not equal to another object.
 
-## Examples
 ### start function:
 
 ```javascript
@@ -72,6 +71,8 @@ preem.start();
 ```
 
 start the test - **need to be called after writing all the tests**
+
+## Examples
 
 ### Primitive types testing:
 
