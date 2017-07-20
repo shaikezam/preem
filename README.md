@@ -52,6 +52,8 @@ preem.testModule(/* test module description */, function(beforeEach, checkIf) {
     
 });
 
+```
+
 ### Primitive types testing:
 
 ```javascript
