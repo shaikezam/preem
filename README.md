@@ -39,7 +39,7 @@ let preem = new Preem({
 
 ### testModule function:
 
-Function to create tests that have a common scope
+Function to create tests that have a common issue
 
 ```javascript
 "use strict";
@@ -51,14 +51,14 @@ preem.testModule(/* test module description */, function(beforeEach, checkIf) {
 
 ```
 
-**beforeEach**: receives a callback function that can performs operations before each CheckIf function
+**beforeEach**: receives a callback function that can perform operations before each CheckIf function
     
 **checkIf**: receives the tested parameter, return object of pre-defined functions:
-- isEqualTo - test the *checkIf* paramter is equal to another parameter (only Primitive types).
-- isNotEqualTo - test the *checkIf* paramter is not equal to another parameter (only Primitive types).
-- isIncludes - test the *checkIf* array contains a parameter.
-- isNotIncludes - test the *checkIf* array don't contains a parameter.
-- isDeepEqualTo - test the *checkIf* object is equal to another object.
+- isEqualTo - test *checkIf* paramter is equal to another parameter (only Primitive types).
+- isNotEqualTo - test *checkIf* paramter is not equal to another parameter (only Primitive types).
+- isIncludes - test *checkIf* array contains a parameter.
+- isNotIncludes - test *checkIf* array don't contains a parameter.
+- isDeepEqualTo - test *checkIf* object is equal to another object.
 
 ### Primitive types testing:
 
