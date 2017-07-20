@@ -53,12 +53,25 @@ preem.testModule(/* test module description */, function(beforeEach, checkIf) {
 
 **beforeEach**: receives a callback function that can perform operations before each CheckIf function
     
-**checkIf**: receives the tested parameter, return object of pre-defined functions:
+**checkIf**: receives the tested parameter, returns an object of predefined functions:
 - isEqualTo - test *checkIf* paramter is equal to another parameter (only Primitive types).
 - isNotEqualTo - test *checkIf* paramter is not equal to another parameter (only Primitive types).
 - isIncludes - test *checkIf* array contains a parameter.
 - isNotIncludes - test *checkIf* array don't contains a parameter.
 - isDeepEqualTo - test *checkIf* object is equal to another object.
+- isNotDeepEqualTo - test *checkIf* object is not equal to another object.
+
+## Examples
+### start function:
+
+```javascript
+"use strict";
+
+preem.start();
+
+```
+
+start the test - **need to be called after writing all the tests**
 
 ### Primitive types testing:
 
