@@ -60,6 +60,12 @@ preem.testModule(/* test module description */, function(beforeEach, checkIf) {
 - isNotIncludes - test *checkIf* array don't contains a parameter.
 - isDeepEqualTo - test *checkIf* object is equal to another object.
 - isNotDeepEqualTo - test *checkIf* object is not equal to another object.
+- **inMyCriteria** - test *checkIf* object\s is not in predefined condition, need to pass the function as the 1st argument - see example in next.
+
+#### start function:
+
+User's predefined criteria - 
+
 
 ### start function:
 
@@ -145,6 +151,52 @@ preem.testModule("Test Objects", function(beforeEach, checkIf) {
 });
 
 preem.start();
+```
+
+### User's predefined criteria:
+
+```javascript
+"use strict";
+
+preem.testModule("Test by my own criteria", function(beforeEach, checkIf) {
+
+    let number = 1,
+        numebrs = [-1, -2, -3];
+
+    function fnPositiveNumber(iNum) {
+        return iNum > 0;
+    };
+
+    function fnComparingNumbers(firstNumber, secondNumber) {
+        return firstNumber === secondNumber;
+    };
+
+    function fnNegativeNumbers(aNum) {
+        for (let i = 0; i < aNum.length; i++) {
+            if (aNum[i] > 0) {
+                return false;
+            }
+        }
+        return true;
+    };
+
+    function fnNumberInArray(aNum, iNum) {
+        return aNum.indexOf(iNum) > -1;
+    };
+    
+    beforeEach(function() {
+        console.log("User's predefined functions must return true to pass tests");
+    });
+
+    checkIf(number).inMyCriteria(fnPositiveNumber, "Number is positive", "Number isn't positive");
+
+    checkIf(number, 1).inMyCriteria(fnComparingNumbers, "Numbers are equal", "Number arn't equal");
+
+    checkIf(numebrs).inMyCriteria(fnNegativeNumbers, "Numbers are negative", "Number arn't negative");
+
+    checkIf(numebrs, -1).inMyCriteria(fnNumberInArray, "-1 in array", "-1 isn't in array");
+
+});
 ```
 
 *Stay tuned for more updates soon*
