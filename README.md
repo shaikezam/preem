@@ -62,11 +62,6 @@ preem.testModule(/* test module description */, function(beforeEach, checkIf) {
 - isNotDeepEqualTo - test *checkIf* object is not equal to another object.
 - **inMyCriteria** - test *checkIf* object\s is not in predefined condition, need to pass the function as the 1st argument - see example in next.
 
-#### start function:
-
-User's predefined criteria - 
-
-
 ### start function:
 
 ```javascript
