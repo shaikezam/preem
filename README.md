@@ -5,20 +5,23 @@ Lightweight, easy-to-use JavaScript test library
 [![Build Status](http://circleci-badges-max.herokuapp.com/img/shaikezam/preem/master?token=:circle-ci-token)](https://circleci.com/gh/shaikezam/preem/tree/master)
 
 ## Usage
+Install preem:
 
-Installing requirening and using with npm:
+```javascript
+npm install preem
+```
+
+Requirening and using:
 
 ```javascript
 "use strict";
-
-npm install preem
     
 let Preem = require('preem');
 
 let preem = new Preem();
 ```
 
-Preem constructor parameters (**Not mandatory**, can leave it empty):
+Preem constructor parameters (**Not mandatory** to pass an object, have default values):
 
 ```javascript
 "use strict";
@@ -33,6 +36,44 @@ let preem = new Preem({
     }
 });
 ```
+
+### testModule function:
+
+Function for creating tests that have a common topic
+
+```javascript
+"use strict";
+
+preem.testModule(/* test module description */, function(beforeEach, checkIf) {
+
+    
+});
+
+```
+
+**beforeEach**: receives a callback function that can perform operations before each CheckIf function
+    
+**checkIf**: receives the tested parameter, returns an object of predefined functions:
+- isEqualTo - test *checkIf* paramter is equal to another parameter (only Primitive types).
+- isNotEqualTo - test *checkIf* paramter is not equal to another parameter (only Primitive types).
+- isIncludes - test *checkIf* array contains a parameter.
+- isNotIncludes - test *checkIf* array don't contains a parameter.
+- isDeepEqualTo - test *checkIf* object is equal to another object.
+- isNotDeepEqualTo - test *checkIf* object is not equal to another object.
+- **inMyCriteria** - test *checkIf* object\s is not in predefined condition, need to pass the function as the 1st argument - see example in next.
+
+### start function:
+
+```javascript
+"use strict";
+
+preem.start();
+
+```
+
+Function for starting the test - **need to be called after writing all the tests**
+
+## Examples
 
 ### Primitive types testing:
 
@@ -105,6 +146,52 @@ preem.testModule("Test Objects", function(beforeEach, checkIf) {
 });
 
 preem.start();
+```
+
+### User's predefined criteria:
+
+```javascript
+"use strict";
+
+preem.testModule("Test by my own criteria", function(beforeEach, checkIf) {
+
+    let number = 1,
+        numebrs = [-1, -2, -3];
+
+    function fnPositiveNumber(iNum) {
+        return iNum > 0;
+    };
+
+    function fnComparingNumbers(firstNumber, secondNumber) {
+        return firstNumber === secondNumber;
+    };
+
+    function fnNegativeNumbers(aNum) {
+        for (let i = 0; i < aNum.length; i++) {
+            if (aNum[i] > 0) {
+                return false;
+            }
+        }
+        return true;
+    };
+
+    function fnNumberInArray(aNum, iNum) {
+        return aNum.indexOf(iNum) > -1;
+    };
+    
+    beforeEach(function() {
+        console.log("User's predefined functions must return true to pass tests");
+    });
+
+    checkIf(number).inMyCriteria(fnPositiveNumber, "Number is positive", "Number isn't positive");
+
+    checkIf(number, 1).inMyCriteria(fnComparingNumbers, "Numbers are equal", "Number arn't equal");
+
+    checkIf(numebrs).inMyCriteria(fnNegativeNumbers, "Numbers are negative", "Number arn't negative");
+
+    checkIf(numebrs, -1).inMyCriteria(fnNumberInArray, "-1 in array", "-1 isn't in array");
+
+});
 ```
 
 *Stay tuned for more updates soon*
