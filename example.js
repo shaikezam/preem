@@ -33,7 +33,7 @@ preem.testModule("Test Arrays", function(beforeEach, checkIf) {
 
     let arr = ['Hello', 'World', 'foo'],
         s1 = "Hello",
-        s2 = "bla";
+        s2 = "Hello";
 
     beforeEach(function() {
         console.log("Before each checkIf");
