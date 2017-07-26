@@ -9,7 +9,7 @@ Lightweight, easy-to-use JavaScript test library
 ### Using browser \ client
 
 ```html
-<script src='https://raw.githubusercontent.com/shaikezam/preem/master/preem_browser.js'></script>
+<script src="https://raw.githubusercontent.com/shaikezam/preem/master/preem_browser.js"></script>
 ```
 
 ### Using NPM
