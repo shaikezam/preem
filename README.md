@@ -10,7 +10,12 @@ Lightweight, easy-to-use JavaScript test library
         + [Preem constructor](#preem-constructor)
         + [testModule function](#testmodule-function)
         + [start function](#start-function)
-- [testModule function](#testModule-function)
+- [Examples](#examples)
+    * [Primitive types testing](#primitive-types-testing)
+    * [Array testing](#array-testing)
+    * [Objetcs testing](#objetcs-testing)
+    * [User's predefined criteria](#users-predefined-criteria)
+- [License](#license)
 
 ## Usage
 
