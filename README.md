@@ -6,6 +6,10 @@ Lightweight, easy-to-use JavaScript test library
 - [Usage](#usage)
     * [Using browser](#Using-browser)
     * [Using NPM](#using-npm)
+    * [Usage & API](#usage--api)
+        + [Preem constructor](#preem-constructor)
+        + [testModule function](#testmodule-function)
+        + [start function](#start-function)
 - [testModule function](#testModule-function)
 
 ## Usage
@@ -35,6 +39,8 @@ let preem = new Preem();
 ### Usage & API
 
 Preem constructor parameters (**Not mandatory** to pass an object, have default values):
+
+#### Preem constructor
 
 ```javascript
 "use strict";
