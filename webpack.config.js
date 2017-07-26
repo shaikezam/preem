@@ -1,5 +1,5 @@
 module.exports = {
-    entry: './preem.js',
+    entry: './src/preem.js',
     output: {
         filename: 'preem_browser.js'
     },

@@ -28,6 +28,7 @@ let Preem = require('preem');
 
 let preem = new Preem();
 ```
+### Usage & API
 
 Preem constructor parameters (**Not mandatory** to pass an object, have default values):
 
@@ -45,7 +46,7 @@ let preem = new Preem({
 });
 ```
 
-### testModule function:
+#### testModule function:
 
 Function for creating tests that have a common topic
 
@@ -70,7 +71,7 @@ preem.testModule(/* test module description */, function(beforeEach, checkIf) {
 - isNotDeepEqualTo - test *checkIf* object is not equal to another object.
 - **inMyCriteria** - test *checkIf* object\s is not in predefined condition, need to pass the function as the 1st argument - see example in next.
 
-### start function:
+#### start function:
 
 ```javascript
 "use strict";
