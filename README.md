@@ -43,9 +43,9 @@ let preem = new Preem();
 ```
 ### Usage & API
 
-Preem constructor parameters (**Not mandatory** to pass an object, have default values):
-
 #### Preem constructor
+
+Preem constructor parameters (**Not mandatory** to pass an object, have default values):
 
 ```javascript
 "use strict";
