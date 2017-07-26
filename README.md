@@ -5,8 +5,9 @@ Lightweight, easy-to-use JavaScript test library
 [![Build Status](http://circleci-badges-max.herokuapp.com/img/shaikezam/preem/master?token=:circle-ci-token)](https://circleci.com/gh/shaikezam/preem/tree/master)
 - [Usage](#usage)
 ## Usage
+    * [Using browser](#using_browser)
 
-### Using browser \ client
+### Using browser
 
 ```html
 <script src="https://raw.githubusercontent.com/shaikezam/preem/master/preem_browser.js"></script>
