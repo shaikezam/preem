@@ -22,7 +22,7 @@ Lightweight, easy-to-use JavaScript test library
 ### Using browser
 
 ```html
-<script src="https://raw.githubusercontent.com/shaikezam/preem/master/preem_browser.js"></script>
+<script src="https://cdn.rawgit.com/shaikezam/preem/master/preem_browser.js"></script>
 ```
 
 ### Using NPM
