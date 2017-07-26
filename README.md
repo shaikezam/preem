@@ -4,7 +4,9 @@ Lightweight, easy-to-use JavaScript test library
 
 [![Build Status](http://circleci-badges-max.herokuapp.com/img/shaikezam/preem/master?token=:circle-ci-token)](https://circleci.com/gh/shaikezam/preem/tree/master)
 - [Usage](#usage)
-- [testModule function](#testModule_function)
+    * [Using browser](#Using-browser)
+    * [Using NPM](#using-npm)
+- [testModule function](#testModule-function)
 
 ## Usage
 
