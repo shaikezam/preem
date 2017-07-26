@@ -8,7 +8,7 @@ Lightweight, easy-to-use JavaScript test library
 
 ### Using browser \ client
 
-```javascript
+```html
 <script src="./bundle.js"></script>
 ```
 
