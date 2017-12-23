@@ -4,7 +4,8 @@
     "description": "",
     "main": "preem.js",
     "scripts": {
-        "test": "node example.js"
+        "test": "node example.js",
+        "pack": "webpack"
     },
     "dependencies": {
         

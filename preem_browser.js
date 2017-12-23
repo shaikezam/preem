@@ -67,14 +67,6 @@
 /* 0 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(1);
-module.exports = __webpack_require__(4);
-
-
-/***/ }),
-/* 1 */
-/***/ (function(module, exports, __webpack_require__) {
-
 "use strict";
 /* WEBPACK VAR INJECTION */(function(global) {
 
@@ -86,7 +78,7 @@ var Preem = function () {
     function Preem(oConfig) {
         _classCallCheck(this, Preem);
 
-        __webpack_require__(3);
+        __webpack_require__(2);
         this._setConfig(oConfig);
         this.setQueue();
         this.aQueues = [];
@@ -103,6 +95,7 @@ var Preem = function () {
                     oIframe.onload = function () {
                         oIframe.onload = null;
                         this.oConfig.appContext = oIframe.contentWindow.document;
+                        this.oConfig.appContext.preemJQ = jQuery;
                         this._handleSyncTest();
                     }.bind(this);
                 }
@@ -237,12 +230,36 @@ var Preem = function () {
                         fn: function (obj, sPassString, sFailsString) {
                             var str = "";
                             for (var key in obj) {
-                                str = str + obj[key] + ' ';
+                                str = str + obj[key];
                             }
-                            console.log(this.oConfig.appContext.querySelectorAll(str));
+                            var applicationObj = this.oConfig.appContext.getElementById(str);
 
-                            //console.log(this.oConfig.appContext.querySelectorAll(str));
-                            return this._passTest(sPassString);
+                            if (applicationObj !== null) {
+                                return this._passTest(sPassString);
+                            }
+                        }.bind(this.oPreem),
+                        args: [obj, sPassString, sFailsString]
+                    });
+                }.bind(this)
+            };
+        }
+    }, {
+        key: 'then',
+        value: function then() {
+            return {
+                iDoActionOnElement: function (obj, sPassString, sFailsString) {
+                    this.oQueue.enqueue({
+                        fn: function (obj, sPassString, sFailsString) {
+                            var str = "";
+                            for (var key in obj) {
+                                !(obj[key] in Preem.CONSTANTS.ACTIONS) ? str = str + obj[key] : null;
+                            }
+                            var applicationObj = this.oConfig.appContext.getElementById(str);
+                            if (applicationObj !== null) {
+                                applicationObj.click();
+                                return this._passTest(sPassString);
+                            }
+                            console.log(obj);
                         }.bind(this.oPreem),
                         args: [obj, sPassString, sFailsString]
                     });
@@ -346,10 +363,10 @@ var Preem = function () {
             }), this.checkIf.bind({
                 oPreem: this,
                 oQueue: this.aQueues[this.aQueues.length - 1]
-            }), this.findDomElement.bind({
+            }), this.when.bind({
                 oPreem: this,
                 oQueue: this.aQueues[this.aQueues.length - 1]
-            }), this.when.bind({
+            }), this.then.bind({
                 oPreem: this,
                 oQueue: this.aQueues[this.aQueues.length - 1]
             }));
@@ -387,6 +404,10 @@ var Preem = function () {
                 TESTTYPE: {
                     SYNC: 'SYNC',
                     ASYNC: 'ASYNC'
+                },
+                ACTIONS: {
+                    CLICK: 'CLICK',
+                    PRESS: 'PRESS'
                 }
             };
         }
@@ -436,10 +457,10 @@ var RendererManager = function () {
 ;
 
 module.exports = global.Preem = Preem;
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ }),
-/* 2 */
+/* 1 */
 /***/ (function(module, exports) {
 
 var g;
@@ -466,7 +487,7 @@ module.exports = g;
 
 
 /***/ }),
-/* 3 */
+/* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -10682,9 +10703,9 @@ jQuery.nodeName = nodeName;
 // https://github.com/jrburke/requirejs/wiki/Updating-existing-libraries#wiki-anon
 
 if ( true ) {
-	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = function() {
+	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = (function() {
 		return jQuery;
-	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+	}).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 }
 
@@ -10724,27 +10745,6 @@ if ( !noGlobal ) {
 return jQuery;
 } );
 
-
-/***/ }),
-/* 4 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-module.exports = {
-    entry: './preem.js',
-    output: {
-        filename: 'preem_browser.js'
-    },
-    module: {
-        loaders: [{
-            test: /\.js$/,
-            exclude: /node_modules/,
-            loader: 'babel-loader'
-        }]
-    }
-};
 
 /***/ })
 /******/ ]);

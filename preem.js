@@ -17,6 +17,7 @@ class Preem {
                 oIframe.onload = function () {
                     oIframe.onload = null;
                     this.oConfig.appContext = oIframe.contentWindow.document;
+                    this.oConfig.appContext.preemJQ = jQuery;
                     this._handleSyncTest();
                 }.bind(this);
             }
@@ -57,6 +58,7 @@ class Preem {
             console.log(oQueue.description);
             RendererManager.renderTestModule(oQueue.description, i);
             while (!oQueue.isEmpty()) {
+                let count = 0;
                 let oSyncTest = oQueue.dequeue();
                 if (oQueueFnBeforeEach) {
                     oQueueFnBeforeEach();
@@ -142,14 +144,37 @@ class Preem {
             iCanSeeElement: function (obj, sPassString, sFailsString) {
                 this.oQueue.enqueue({
                     fn: function (obj, sPassString, sFailsString) {
-                        var str = "";
+                        let str = "";
                         for (let key in obj) {
-                            str = str + obj[key] + ' ';
+                            str = str + obj[key];
                         }
-                        console.log(this.oConfig.appContext.querySelectorAll(str));
+                        let applicationObj = this.oConfig.appContext.getElementById(str);
 
-                        //console.log(this.oConfig.appContext.querySelectorAll(str));
-                        return this._passTest(sPassString);
+                        if (applicationObj !== null) {
+                            return this._passTest(sPassString);
+                        }
+                    }.bind(this.oPreem),
+                    args: [obj, sPassString, sFailsString]
+                });
+            }.bind(this)
+        }
+    }
+
+    then() {
+        return {
+            iDoActionOnElement: function (obj, sPassString, sFailsString) {
+                this.oQueue.enqueue({
+                    fn: function (obj, sPassString, sFailsString) {
+                        let str = "";
+                        for (let key in obj) {
+                            !(obj[key] in Preem.CONSTANTS.ACTIONS) ? str = str + obj[key] : null
+                        }
+                        let applicationObj = this.oConfig.appContext.getElementById(str);
+                        if (applicationObj !== null) {
+                            applicationObj.click();
+                            return this._passTest(sPassString);
+                        }
+                        console.log(obj);
                     }.bind(this.oPreem),
                     args: [obj, sPassString, sFailsString]
                 });
@@ -241,10 +266,10 @@ class Preem {
         }), this.checkIf.bind({
             oPreem: this,
             oQueue: this.aQueues[this.aQueues.length - 1]
-        }), this.findDomElement.bind({
+        }), this.when.bind({
             oPreem: this,
             oQueue: this.aQueues[this.aQueues.length - 1]
-        }), this.when.bind({
+        }), this.then.bind({
             oPreem: this,
             oQueue: this.aQueues[this.aQueues.length - 1]
         }));
@@ -278,6 +303,10 @@ class Preem {
             TESTTYPE: {
                 SYNC: 'SYNC',
                 ASYNC: 'ASYNC'
+            },
+            ACTIONS: {
+                CLICK: 'CLICK',
+                PRESS: 'PRESS'
             }
         };
     }
