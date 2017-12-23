@@ -60,11 +60,38 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 0);
+/******/ 	return __webpack_require__(__webpack_require__.s = 1);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
+/***/ (function(module, exports) {
+
+var g;
+
+// This works in non-strict mode
+g = (function() {
+	return this;
+})();
+
+try {
+	// This works if eval is allowed (see CSP)
+	g = g || Function("return this")() || (1,eval)("this");
+} catch(e) {
+	// This works if the window reference is available
+	if(typeof window === "object")
+		g = window;
+}
+
+// g can still be undefined, but nothing to do about it...
+// We return undefined, instead of nothing here, so it's
+// easier to handle this case. if(!global) { ...}
+
+module.exports = g;
+
+
+/***/ }),
+/* 1 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -74,13 +101,20 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+var instance = null;
+
 var Preem = function () {
     function Preem(oConfig) {
         _classCallCheck(this, Preem);
 
+        if (!instance) {
+            instance = this;
+        }
+        //require('sinon');
         __webpack_require__(2);
+        __webpack_require__(3);
+        __webpack_require__(4);
         this._setConfig(oConfig);
-        this.setQueue();
         this.aQueues = [];
     }
 
@@ -95,7 +129,39 @@ var Preem = function () {
                     oIframe.onload = function () {
                         oIframe.onload = null;
                         this.oConfig.appContext = oIframe.contentWindow.document;
-                        this.oConfig.appContext.preemJQ = jQuery;
+                        document.getElementById('iFrameName').contentWindow.preemJQ = jQuery;
+                        jQuery.get(this.oConfig.data, function (data) {
+
+                            this.oConfig.recordMode = true;
+                            NetworkManager.setCalls(data);
+
+                            var open = document.getElementById('iFrameName').contentWindow.XMLHttpRequest.prototype.open;
+
+                            var oResponse = NetworkManager.getCall(0);
+                            var server = sinon.fakeServer.create();
+                            server.respondImmediately = true;
+                            document.getElementById('iFrameName').contentWindow.XMLHttpRequest = window.XMLHttpRequest;
+                            for (var i = 0; i < data.length; i++) {
+                                server.respondWith(data[i].method, data[i].url, [data[i].status, null, data[i].response]);
+                            }
+                        }.bind(this)).fail(function (data) {
+                            this.oConfig.recordMode = false;
+                            var open = document.getElementById('iFrameName').contentWindow.XMLHttpRequest.prototype.open;
+                            document.getElementById('iFrameName').contentWindow.XMLHttpRequest.prototype.open = function (sMethod, sURI) {
+                                if (sURI.endsWith(".php")) {
+                                    NetworkManager.appendCall({ url: sURI, method: sMethod });
+
+                                    this.onreadystatechange = function () {
+                                        if (this.readyState == 4) {
+                                            NetworkManager.addFields(this.response, this.status);
+                                        }
+                                    };
+                                }
+                                return open.apply(this, arguments);
+                            };
+                        }.bind(this)).always(function () {
+                            NetworkManager.setRecordMode(this.oConfig.recordMode);
+                        }.bind(this));
                         this._handleSyncTest();
                     }.bind(this);
                 }
@@ -126,33 +192,17 @@ var Preem = function () {
                 onFinish: _oConfig ? _oConfig.onFinish || null : null,
                 onStart: _oConfig ? _oConfig.onStart || null : null,
                 title: _oConfig.title,
-                appPath: _oConfig.networkManager && _oConfig.networkManager.appPath ? _oConfig.networkManager.appPath : ""
+                appPath: _oConfig.networkManager && _oConfig.networkManager.appPath ? _oConfig.networkManager.appPath : "",
+                data: _oConfig.networkManager && _oConfig.networkManager.data ? _oConfig.networkManager.data : ""
             };
         }
     }, {
         key: '_handleSyncTest',
         value: function _handleSyncTest() {
             this._handleStart();
-            for (var i = 0; i < this.aQueues.length; i++) {
-                var iTestModuleTime = 0,
-                    oQueue = this.aQueues[i],
-                    oQueueFnBeforeEach = oQueue.beforeEach;
-                console.log(oQueue.description);
-                RendererManager.renderTestModule(oQueue.description, i);
-                while (!oQueue.isEmpty()) {
-                    var oSyncTest = oQueue.dequeue();
-                    if (oQueueFnBeforeEach) {
-                        oQueueFnBeforeEach();
-                    }
-                    var iStartSingularTestTime = window.performance.now(),
-                        bSingularTestResult = oSyncTest.fn.apply(this, oSyncTest.args),
-                        iFinishSingularTestTime = (window.performance.now() - iStartSingularTestTime).toFixed(4);
-                    console.log(bSingularTestResult);
-                    iTestModuleTime += parseFloat(iFinishSingularTestTime);
-                    RendererManager.renderSingularTest(bSingularTestResult.description, bSingularTestResult.status, i, iFinishSingularTestTime);
-                }
-                RendererManager.renderTestModuleTime(i, iTestModuleTime.toFixed(4));
-            }
+            var oTest = this.aQueues[0].dequeue();
+            RendererManager.renderTestModule(this.aQueues[0].description, 0);
+            oTest.deferred(this.aQueues[0], 0, 0, this.aQueues);
             this._handleDone();
         }
     }, {
@@ -204,42 +254,17 @@ var Preem = function () {
             };
         }
     }, {
-        key: 'findDomElement',
-        value: function findDomElement(by) {
-            return {
-                isBackgroundColorIsEqualTo: function (sColor, sPassString, sFailsString) {
-                    this.oQueue.enqueue({
-                        fn: this.oPreem._isBackgroundColorIsEqualTo.bind(this.oPreem),
-                        args: [by, sColor, sPassString, sFailsString]
-                    });
-                }.bind(this),
-                isTextEqualTo: function (sText, sPassString, sFailsString) {
-                    this.oQueue.enqueue({
-                        fn: this.oPreem._isTextEqualTo.bind(this.oPreem),
-                        args: [by, sText, sPassString, sFailsString]
-                    });
-                }.bind(this)
-            };
-        }
-    }, {
         key: 'when',
         value: function when() {
             return {
                 iCanSeeElement: function (obj, sPassString, sFailsString) {
-                    this.oQueue.enqueue({
-                        fn: function (obj, sPassString, sFailsString) {
-                            var str = "";
-                            for (var key in obj) {
-                                str = str + obj[key];
-                            }
-                            var applicationObj = this.oConfig.appContext.getElementById(str);
-
-                            if (applicationObj !== null) {
-                                return this._passTest(sPassString);
-                            }
-                        }.bind(this.oPreem),
-                        args: [obj, sPassString, sFailsString]
-                    });
+                    this.oQueue.enqueue(this.oPreem.addDeferred(function (obj, sPassString, sFailsString) {
+                        var applicationObj = document.getElementById('iFrameName').contentWindow.document.getElementById(obj.id);
+                        if (applicationObj !== null) {
+                            return this._passTest(sPassString);
+                        }
+                        return this._failTest(sFailsString);
+                    }.bind(this.oPreem), [obj, sPassString, sFailsString]));
                 }.bind(this)
             };
         }
@@ -248,21 +273,25 @@ var Preem = function () {
         value: function then() {
             return {
                 iDoActionOnElement: function (obj, sPassString, sFailsString) {
-                    this.oQueue.enqueue({
-                        fn: function (obj, sPassString, sFailsString) {
-                            var str = "";
-                            for (var key in obj) {
-                                !(obj[key] in Preem.CONSTANTS.ACTIONS) ? str = str + obj[key] : null;
+                    this.oQueue.enqueue(this.oPreem.addDeferred(function (obj, sPassString, sFailsString) {
+                        var applicationObj = document.getElementById('iFrameName').contentWindow.document.getElementById(obj.id);
+                        if (applicationObj !== null) {
+                            switch (obj.action) {
+                                case Preem.CONSTANTS.ACTIONS.CLICK:
+                                    applicationObj.click();
+                                    return this._passTest(sPassString);
+                                    break;
+                                case Preem.CONSTANTS.ACTIONS.TYPE:
+                                    applicationObj.value = obj.text;
+                                    return this._passTest(sPassString);
+                                    break;
+                                default:
+
+                                    break;
                             }
-                            var applicationObj = this.oConfig.appContext.getElementById(str);
-                            if (applicationObj !== null) {
-                                applicationObj.click();
-                                return this._passTest(sPassString);
-                            }
-                            console.log(obj);
-                        }.bind(this.oPreem),
-                        args: [obj, sPassString, sFailsString]
-                    });
+                        }
+                        return this._failTest(sFailsString);
+                    }.bind(this.oPreem), [obj, sPassString, sFailsString]));
                 }.bind(this)
             };
         }
@@ -272,52 +301,63 @@ var Preem = function () {
             this.oQueue.beforeEach = fnCallback;
         }
     }, {
-        key: '_fnNotEqual',
-        value: function _fnNotEqual(expected, actual, sPassString, sFailsString) {
-            return expected !== actual ? this._passTest(sPassString) : this._failTest(sFailsString);
-        }
-    }, {
-        key: '_fnEqual',
-        value: function _fnEqual(expected, actual, sPassString, sFailsString) {
-            return expected === actual ? this._passTest(sPassString) : this._failTest(sFailsString);
-        }
-    }, {
-        key: '_fnInclude',
-        value: function _fnInclude(oTestedArray, oTestedObject, sPassString, sFailsString) {
-            return oTestedArray.indexOf(oTestedObject) >= 0 ? this._passTest(sPassString) : this._failTest(sFailsString);
-        }
-    }, {
-        key: '_fnNotInclude',
-        value: function _fnNotInclude(oTestedArray, oTestedObject, sPassString, sFailsString) {
-            return oTestedArray.indexOf(oTestedObject) === -1 ? this._passTest(sPassString) : this._failTest(sFailsString);
-        }
-    }, {
-        key: '_fnObjectsEquality',
-        value: function _fnObjectsEquality(expected, actual, sPassString, sFailsString) {
-            return JSON.stringify(expected) === JSON.stringify(actual) ? this._passTest(sPassString) : this._failTest(sFailsString);
-        }
-    }, {
-        key: '_inMyCriteria',
-        value: function _inMyCriteria(args, fn, sPassString, sFailsString) {
-            var bFlag = fn.apply(this, args);
-            return bFlag == true ? this._passTest(sPassString) : this._failTest(sFailsString);
-        }
-    }, {
-        key: '_isBackgroundColorIsEqualTo',
-        value: function _isBackgroundColorIsEqualTo(by, sColor, sPassString, sFailsString) {
-            console.log();
-            return this.oConfig.appContext.getElementById('myButton').style.backgroundColor === sColor ? this._passTest(sPassString) : this._failTest(sFailsString);
-        }
-    }, {
-        key: '_isTextEqualTo',
-        value: function _isTextEqualTo(by, sText, sPassString, sFailsString) {
-            var oAnchors = this.oConfig.appContext.getElementsByTagName('a');
-            for (var i = 0; i < oAnchors.length; i++) {
-                if (oAnchors[i].text === sText) {
-                    return this._passTest(sPassString);
-                }
-            }
-            return this._failTest(sFailsString);
+        key: 'addDeferred',
+        value: function addDeferred(fn, args) {
+
+            var _dft = {
+                deferred: function deferred(oQueue, iTestModuleIndex, iTestModuleTime, oTestModules) {
+                    this.oDeferred = $.Deferred().done(function () {
+                        this.clearTimeout();
+                    }.bind(this)).fail(function () {
+                        this.clearTimeout();
+                    }.bind(this)).always(function () {
+                        this.iFinishSingularTestTime = (window.performance.now() - this.iStartSingularTestTime).toFixed(4);
+                        RendererManager.renderSingularTest(this.returnTestResults.description, this.returnTestResults.status, iTestModuleIndex, this.iFinishSingularTestTime);
+                        if (oQueue.isEmpty()) {
+                            RendererManager.renderTestModuleTime(iTestModuleIndex, iTestModuleTime.toFixed(4));
+                            if (iTestModuleIndex === oTestModules.length - 1) {
+                                if (!NetworkManager.getRecordMode()) {
+                                    NetworkManager.downlaodDataFile();
+                                }
+                                return;
+                            } else {
+                                iTestModuleIndex++;
+                                RendererManager.renderTestModule(oTestModules[iTestModuleIndex].description, iTestModuleIndex);
+                                oTestModules[iTestModuleIndex].dequeue().deferred(oTestModules[iTestModuleIndex], iTestModuleIndex, iTestModuleTime + parseFloat(this.iFinishSingularTestTime), oTestModules);
+                                return;
+                            }
+                        }
+                        oQueue.dequeue().deferred(oQueue, iTestModuleIndex, iTestModuleTime + parseFloat(this.iFinishSingularTestTime), oTestModules);
+                    }.bind(this));
+                    this._startTimeout();
+                    return this.oDeferred;
+                },
+                _startInterval: function _startInterval() {
+                    this.iIntervalId = setInterval(function () {
+                        this.iStartSingularTestTime = window.performance.now();
+                        this.returnTestResults = this.fn.apply(this, this.args);
+                        if (this.returnTestResults.status) {
+
+                            this.oDeferred.resolve();
+                        }
+                    }.bind(this), 200);
+                },
+                _startTimeout: function _startTimeout() {
+                    this._startInterval();
+                    this.iTimeoutId = setTimeout(function () {
+                        window.clearInterval(this.iIntervalId);
+                        this.iFinishSingularTestTime = (window.performance.now() - this.iStartSingularTestTime).toFixed(4);
+                        this.oDeferred.reject();
+                    }.bind(this), 3000);
+                },
+                clearTimeout: function clearTimeout() {
+                    window.clearInterval(this.iIntervalId);
+                    window.clearTimeout(this.iTimeoutId);
+                },
+                fn: fn,
+                args: args
+            };
+            return _dft;
         }
     }, {
         key: 'createQueue',
@@ -349,11 +389,6 @@ var Preem = function () {
             };
         }
     }, {
-        key: 'setQueue',
-        value: function setQueue() {
-            this.oQueue = this.createQueue('temp');
-        }
-    }, {
         key: 'testModule',
         value: function testModule(sDescription, fn) {
             this.aQueues.push(this.createQueue(sDescription));
@@ -372,17 +407,8 @@ var Preem = function () {
             }));
         }
     }, {
-        key: 'getQueue',
-        value: function getQueue() {
-            if (!this.oQueue) {
-                this.setQueue();
-            }
-            return this.oQueue;
-        }
-    }, {
         key: '_passTest',
         value: function _passTest(sPassString) {
-            console.log(sPassString);
             return {
                 status: true,
                 description: sPassString
@@ -398,6 +424,11 @@ var Preem = function () {
             //throw new Error(sFailsString);
         }
     }], [{
+        key: 'getInstance',
+        get: function get() {
+            return instance;
+        }
+    }, {
         key: 'CONSTANTS',
         get: function get() {
             return {
@@ -407,7 +438,8 @@ var Preem = function () {
                 },
                 ACTIONS: {
                     CLICK: 'CLICK',
-                    PRESS: 'PRESS'
+                    PRESS: 'PRESS',
+                    TYPE: 'TYPE'
                 }
             };
         }
@@ -417,74 +449,8 @@ var Preem = function () {
 }();
 
 ;
-
-var RendererManager = function () {
-    function RendererManager() {
-        _classCallCheck(this, RendererManager);
-    }
-
-    _createClass(RendererManager, null, [{
-        key: 'renderTestTitle',
-        value: function renderTestTitle(title) {
-            var oDate = new Date();
-            title = title + ' ' + oDate.toLocaleDateString() + ' ' + oDate.toLocaleTimeString();
-            $('body').append('<h1>' + title + '</h1>');
-        }
-    }, {
-        key: 'renderTestModule',
-        value: function renderTestModule(description, index) {
-            $('body').append('<div class = "runningTestModule" id = "testModule' + index + '"><div class="testModuleTitle" id = "testModuleTitle' + index + '">' + description + '</div></div>');
-        }
-    }, {
-        key: 'renderTestModuleTime',
-        value: function renderTestModuleTime(index, iTestModuleTime) {
-            $('#testModuleTitle' + index).text($('#testModuleTitle' + index).text() + ' ' + iTestModuleTime);
-        }
-    }, {
-        key: 'renderSingularTest',
-        value: function renderSingularTest(description, bStatus, index, iSingularTestTime) {
-            if (bStatus) {
-                $('#testModule' + index).append('<div class = "passSingularTest">' + description + ' ' + iSingularTestTime + '</div>');
-                return;
-            }
-            $('#testModule' + index).append('<div class = "faildSingularTest" id = "testModule' + index + '">' + description + ' ' + iSingularTestTime + '</div>');
-        }
-    }]);
-
-    return RendererManager;
-}();
-
-;
-
 module.exports = global.Preem = Preem;
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
-
-/***/ }),
-/* 1 */
-/***/ (function(module, exports) {
-
-var g;
-
-// This works in non-strict mode
-g = (function() {
-	return this;
-})();
-
-try {
-	// This works if eval is allowed (see CSP)
-	g = g || Function("return this")() || (1,eval)("this");
-} catch(e) {
-	// This works if the window reference is available
-	if(typeof window === "object")
-		g = window;
-}
-
-// g can still be undefined, but nothing to do about it...
-// We return undefined, instead of nothing here, so it's
-// easier to handle this case. if(!global) { ...}
-
-module.exports = g;
-
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
 /* 2 */
@@ -10745,6 +10711,143 @@ if ( !noGlobal ) {
 return jQuery;
 } );
 
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function(global) {
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var RendererManager = function () {
+    function RendererManager() {
+        _classCallCheck(this, RendererManager);
+    }
+
+    _createClass(RendererManager, null, [{
+        key: 'renderTestTitle',
+        value: function renderTestTitle(title) {
+            var oDate = new Date();
+            title = title + ' ' + oDate.toLocaleDateString() + ' ' + oDate.toLocaleTimeString();
+            $('body').append('<h1>' + title + '</h1>');
+        }
+    }, {
+        key: 'renderTestModule',
+        value: function renderTestModule(description, index) {
+            $('body').append('<div class = "runningTestModule" id = "testModule' + index + '"><div class="testModuleTitle" id = "testModuleTitle' + index + '">' + description + '</div></div>');
+        }
+    }, {
+        key: 'renderTestModuleTime',
+        value: function renderTestModuleTime(index, iTestModuleTime) {
+            $('#testModuleTitle' + index).text($('#testModuleTitle' + index).text() + ' ' + iTestModuleTime);
+        }
+    }, {
+        key: 'renderSingularTest',
+        value: function renderSingularTest(description, bStatus, index, iSingularTestTime) {
+            if (bStatus) {
+                $('#testModule' + index).append('<div class = "passSingularTest">' + description + ' ' + iSingularTestTime + '</div>');
+                return;
+            }
+            $('#testModule' + index).append('<div class = "faildSingularTest" id = "testModule' + index + '">' + description + ' ' + iSingularTestTime + '</div>');
+        }
+    }]);
+
+    return RendererManager;
+}();
+
+module.exports = global.RendererManager = RendererManager;
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
+
+/***/ }),
+/* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function(global) {
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var oCalls = [],
+    count = 0,
+    recordMode = void 0;
+
+var NetworkManager = function () {
+    function NetworkManager() {
+        _classCallCheck(this, NetworkManager);
+    }
+
+    _createClass(NetworkManager, null, [{
+        key: 'appendCall',
+        value: function appendCall(obj) {
+            oCalls.push(obj);
+        }
+    }, {
+        key: 'getCall',
+        value: function getCall(idx) {
+            return oCalls[0];
+        }
+    }, {
+        key: 'setCalls',
+        value: function setCalls(obj) {
+            oCalls = obj;
+            count = obj.length;
+        }
+    }, {
+        key: 'addFields',
+        value: function addFields(response, status) {
+            oCalls[count].response = response;
+            oCalls[count].status = status;
+            NetworkManager.incCount();
+        }
+    }, {
+        key: 'setRecordMode',
+        value: function setRecordMode(val) {
+            recordMode = val;
+        }
+    }, {
+        key: 'getRecordMode',
+        value: function getRecordMode(val) {
+            return recordMode;
+        }
+    }, {
+        key: 'downlaodDataFile',
+        value: function downlaodDataFile() {
+            var blob = new Blob([JSON.stringify(oCalls)], {
+                type: 'application/octet-stream'
+            });
+
+            var url = URL.createObjectURL(blob);
+            var link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'data.json');
+
+            link.click();
+
+            URL.revokeObjectURL(url);
+        }
+    }, {
+        key: 'incCount',
+        value: function incCount() {
+            count++;
+        }
+    }, {
+        key: 'printCalls',
+        value: function printCalls() {
+            console.log(oCalls);
+        }
+    }]);
+
+    return NetworkManager;
+}();
+
+module.exports = global.NetworkManager = NetworkManager;
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ })
 /******/ ]);

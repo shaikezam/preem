@@ -1,10 +1,16 @@
 "use strict";
+let instance = null;
 class Preem {
 
     constructor(oConfig) {
+        if (!instance) {
+            instance = this;
+        }
+        //require('sinon');
         require('jQuery');
+        require('./RendererManager');
+        require('./NetworkManager');
         this._setConfig(oConfig);
-        this.setQueue();
         this.aQueues = [];
     }
 
@@ -17,7 +23,43 @@ class Preem {
                 oIframe.onload = function () {
                     oIframe.onload = null;
                     this.oConfig.appContext = oIframe.contentWindow.document;
-                    this.oConfig.appContext.preemJQ = jQuery;
+                    document.getElementById('iFrameName').contentWindow.preemJQ = jQuery;
+                    jQuery.get(this.oConfig.data, function (data) {
+
+                        this.oConfig.recordMode = true;
+                        NetworkManager.setCalls(data);
+
+                        var open = document.getElementById('iFrameName').contentWindow.XMLHttpRequest.prototype.open;
+
+                        let oResponse = NetworkManager.getCall(0);
+                        var server = sinon.fakeServer.create();
+                        server.respondImmediately = true;
+                        document.getElementById('iFrameName').contentWindow.XMLHttpRequest = window.XMLHttpRequest;
+                        for (var i = 0; i < data.length; i++) {
+                            server.respondWith(data[i].method, data[i].url,
+                                    [data[i].status, null,
+                                        data[i].response]);
+                        }
+
+                    }.bind(this)).fail(function (data) {
+                        this.oConfig.recordMode = false;
+                        var open = document.getElementById('iFrameName').contentWindow.XMLHttpRequest.prototype.open;
+                        document.getElementById('iFrameName').contentWindow.XMLHttpRequest.prototype.open = function (sMethod, sURI) {
+                            if (sURI.endsWith(".php")) {
+                                NetworkManager.appendCall({url: sURI, method: sMethod});
+
+                                this.onreadystatechange = function () {
+                                    if (this.readyState == 4) {
+                                        NetworkManager.addFields(this.response, this.status);
+                                    }
+                                }
+                            }
+                            return open.apply(this, arguments);
+                        }
+
+                    }.bind(this)).always(function() {
+                        NetworkManager.setRecordMode(this.oConfig.recordMode)
+                    }.bind(this));
                     this._handleSyncTest();
                 }.bind(this);
             }
@@ -45,33 +87,16 @@ class Preem {
             onFinish: _oConfig ? _oConfig.onFinish || null : null,
             onStart: _oConfig ? _oConfig.onStart || null : null,
             title: _oConfig.title,
-            appPath: _oConfig.networkManager && _oConfig.networkManager.appPath ? _oConfig.networkManager.appPath : ""
+            appPath: _oConfig.networkManager && _oConfig.networkManager.appPath ? _oConfig.networkManager.appPath : "",
+            data: _oConfig.networkManager && _oConfig.networkManager.data ? _oConfig.networkManager.data : ""
         };
     }
 
     _handleSyncTest() {
         this._handleStart();
-        for (let i = 0; i < this.aQueues.length; i++) {
-            let iTestModuleTime = 0,
-                    oQueue = this.aQueues[i],
-                    oQueueFnBeforeEach = oQueue.beforeEach;
-            console.log(oQueue.description);
-            RendererManager.renderTestModule(oQueue.description, i);
-            while (!oQueue.isEmpty()) {
-                let count = 0;
-                let oSyncTest = oQueue.dequeue();
-                if (oQueueFnBeforeEach) {
-                    oQueueFnBeforeEach();
-                }
-                let iStartSingularTestTime = window.performance.now(),
-                        bSingularTestResult = oSyncTest.fn.apply(this, oSyncTest.args),
-                        iFinishSingularTestTime = (window.performance.now() - iStartSingularTestTime).toFixed(4);
-                console.log(bSingularTestResult);
-                iTestModuleTime += parseFloat(iFinishSingularTestTime);
-                RendererManager.renderSingularTest(bSingularTestResult.description, bSingularTestResult.status, i, iFinishSingularTestTime);
-            }
-            RendererManager.renderTestModuleTime(i, iTestModuleTime.toFixed(4));
-        }
+        let oTest = this.aQueues[0].dequeue();
+        RendererManager.renderTestModule(this.aQueues[0].description, 0);
+        oTest.deferred(this.aQueues[0], 0, 0, this.aQueues);
         this._handleDone();
     }
 
@@ -122,40 +147,16 @@ class Preem {
         }
     }
 
-    findDomElement(by) {
-        return {
-            isBackgroundColorIsEqualTo: function (sColor, sPassString, sFailsString) {
-                this.oQueue.enqueue({
-                    fn: this.oPreem._isBackgroundColorIsEqualTo.bind(this.oPreem),
-                    args: [by, sColor, sPassString, sFailsString]
-                });
-            }.bind(this),
-            isTextEqualTo: function (sText, sPassString, sFailsString) {
-                this.oQueue.enqueue({
-                    fn: this.oPreem._isTextEqualTo.bind(this.oPreem),
-                    args: [by, sText, sPassString, sFailsString]
-                });
-            }.bind(this)
-        }
-    }
-
     when() {
         return {
             iCanSeeElement: function (obj, sPassString, sFailsString) {
-                this.oQueue.enqueue({
-                    fn: function (obj, sPassString, sFailsString) {
-                        let str = "";
-                        for (let key in obj) {
-                            str = str + obj[key];
-                        }
-                        let applicationObj = this.oConfig.appContext.getElementById(str);
-
-                        if (applicationObj !== null) {
-                            return this._passTest(sPassString);
-                        }
-                    }.bind(this.oPreem),
-                    args: [obj, sPassString, sFailsString]
-                });
+                this.oQueue.enqueue(this.oPreem.addDeferred(function (obj, sPassString, sFailsString) {
+                    let applicationObj = document.getElementById('iFrameName').contentWindow.document.getElementById(obj.id);
+                    if (applicationObj !== null) {
+                        return this._passTest(sPassString);
+                    }
+                    return this._failTest(sFailsString);
+                }.bind(this.oPreem), [obj, sPassString, sFailsString]));
             }.bind(this)
         }
     }
@@ -163,21 +164,25 @@ class Preem {
     then() {
         return {
             iDoActionOnElement: function (obj, sPassString, sFailsString) {
-                this.oQueue.enqueue({
-                    fn: function (obj, sPassString, sFailsString) {
-                        let str = "";
-                        for (let key in obj) {
-                            !(obj[key] in Preem.CONSTANTS.ACTIONS) ? str = str + obj[key] : null
+                this.oQueue.enqueue(this.oPreem.addDeferred(function (obj, sPassString, sFailsString) {
+                    let applicationObj = document.getElementById('iFrameName').contentWindow.document.getElementById(obj.id);
+                    if (applicationObj !== null) {
+                        switch (obj.action) {
+                            case Preem.CONSTANTS.ACTIONS.CLICK:
+                                applicationObj.click();
+                                return this._passTest(sPassString);
+                                break;
+                            case Preem.CONSTANTS.ACTIONS.TYPE:
+                                applicationObj.value = obj.text;
+                                return this._passTest(sPassString);
+                                break;
+                            default:
+
+                                break;
                         }
-                        let applicationObj = this.oConfig.appContext.getElementById(str);
-                        if (applicationObj !== null) {
-                            applicationObj.click();
-                            return this._passTest(sPassString);
-                        }
-                        console.log(obj);
-                    }.bind(this.oPreem),
-                    args: [obj, sPassString, sFailsString]
-                });
+                    }
+                    return this._failTest(sFailsString);
+                }.bind(this.oPreem), [obj, sPassString, sFailsString]));
             }.bind(this)
         }
     }
@@ -186,44 +191,64 @@ class Preem {
         this.oQueue.beforeEach = fnCallback;
     }
 
-    _fnNotEqual(expected, actual, sPassString, sFailsString) {
-        return expected !== actual ? this._passTest(sPassString) : this._failTest(sFailsString);
-    }
+    addDeferred(fn, args) {
 
-    _fnEqual(expected, actual, sPassString, sFailsString) {
-        return expected === actual ? this._passTest(sPassString) : this._failTest(sFailsString);
-    }
+        let _dft = {
+            deferred: function (oQueue, iTestModuleIndex, iTestModuleTime, oTestModules) {
+                this.oDeferred = $.Deferred().done(function () {
+                    this.clearTimeout();
+                }.bind(this)).fail(function () {
+                    this.clearTimeout();
+                }.bind(this)).always(function () {
+                    this.iFinishSingularTestTime = (window.performance.now() - this.iStartSingularTestTime).toFixed(4);
+                    RendererManager.renderSingularTest(this.returnTestResults.description, this.returnTestResults.status, iTestModuleIndex, this.iFinishSingularTestTime);
+                    if (oQueue.isEmpty()) {
+                        RendererManager.renderTestModuleTime(iTestModuleIndex, iTestModuleTime.toFixed(4));
+                        if (iTestModuleIndex === oTestModules.length - 1) {
+                            if (!NetworkManager.getRecordMode()) {
+                                NetworkManager.downlaodDataFile();
+                            }
+                            return;
+                        } else {
+                            iTestModuleIndex++;
+                            RendererManager.renderTestModule(oTestModules[iTestModuleIndex].description, iTestModuleIndex);
+                            oTestModules[iTestModuleIndex].dequeue().deferred(oTestModules[iTestModuleIndex], iTestModuleIndex, (iTestModuleTime + parseFloat(this.iFinishSingularTestTime)), oTestModules);
+                            return;
+                        }
+                    }
+                    oQueue.dequeue().deferred(oQueue, iTestModuleIndex, (iTestModuleTime + parseFloat(this.iFinishSingularTestTime)), oTestModules);
 
-    _fnInclude(oTestedArray, oTestedObject, sPassString, sFailsString) {
-        return oTestedArray.indexOf(oTestedObject) >= 0 ? this._passTest(sPassString) : this._failTest(sFailsString);
-    }
+                }.bind(this));
+                this._startTimeout();
+                return this.oDeferred;
+            },
+            _startInterval: function () {
+                this.iIntervalId = setInterval(function () {
+                    this.iStartSingularTestTime = window.performance.now();
+                    this.returnTestResults = this.fn.apply(this, this.args);
+                    if (this.returnTestResults.status) {
 
-    _fnNotInclude(oTestedArray, oTestedObject, sPassString, sFailsString) {
-        return oTestedArray.indexOf(oTestedObject) === -1 ? this._passTest(sPassString) : this._failTest(sFailsString);
-    }
+                        this.oDeferred.resolve();
 
-    _fnObjectsEquality(expected, actual, sPassString, sFailsString) {
-        return JSON.stringify(expected) === JSON.stringify(actual) ? this._passTest(sPassString) : this._failTest(sFailsString);
-    }
-
-    _inMyCriteria(args, fn, sPassString, sFailsString) {
-        let bFlag = fn.apply(this, args);
-        return bFlag == true ? this._passTest(sPassString) : this._failTest(sFailsString);
-    }
-
-    _isBackgroundColorIsEqualTo(by, sColor, sPassString, sFailsString) {
-        console.log();
-        return this.oConfig.appContext.getElementById('myButton').style.backgroundColor === sColor ? this._passTest(sPassString) : this._failTest(sFailsString);
-    }
-
-    _isTextEqualTo(by, sText, sPassString, sFailsString) {
-        var oAnchors = this.oConfig.appContext.getElementsByTagName('a');
-        for (var i = 0; i < oAnchors.length; i++) {
-            if (oAnchors[i].text === sText) {
-                return this._passTest(sPassString);
-            }
-        }
-        return this._failTest(sFailsString);
+                    }
+                }.bind(this), 200);
+            },
+            _startTimeout: function () {
+                this._startInterval();
+                this.iTimeoutId = setTimeout(function () {
+                    window.clearInterval(this.iIntervalId);
+                    this.iFinishSingularTestTime = (window.performance.now() - this.iStartSingularTestTime).toFixed(4);
+                    this.oDeferred.reject();
+                }.bind(this), 3000);
+            },
+            clearTimeout: function () {
+                window.clearInterval(this.iIntervalId);
+                window.clearTimeout(this.iTimeoutId);
+            },
+            fn: fn,
+            args: args
+        };
+        return _dft;
     }
 
     createQueue(sDescription, beforeEach) {
@@ -254,10 +279,6 @@ class Preem {
         }
     }
 
-    setQueue() {
-        this.oQueue = this.createQueue('temp');
-    }
-
     testModule(sDescription, fn) {
         this.aQueues.push(this.createQueue(sDescription));
         fn(this.beforeEach.bind({
@@ -275,15 +296,11 @@ class Preem {
         }));
     }
 
-    getQueue() {
-        if (!this.oQueue) {
-            this.setQueue();
-        }
-        return this.oQueue;
+    static get getInstance() {
+        return instance;
     }
 
     _passTest(sPassString) {
-        console.log(sPassString);
         return {
             status: true,
             description: sPassString
@@ -295,7 +312,6 @@ class Preem {
             status: false,
             description: sFailsString
         };
-        //throw new Error(sFailsString);
     }
 
     static get CONSTANTS() {
@@ -306,33 +322,11 @@ class Preem {
             },
             ACTIONS: {
                 CLICK: 'CLICK',
-                PRESS: 'PRESS'
+                PRESS: 'PRESS',
+                TYPE: 'TYPE'
             }
         };
     }
 }
 ;
-
-class RendererManager {
-    static renderTestTitle(title) {
-        let oDate = new Date();
-        title = title + ' ' + oDate.toLocaleDateString() + ' ' + oDate.toLocaleTimeString();
-        $('body').append('<h1>' + title + '</h1>');
-    }
-    static renderTestModule(description, index) {
-        $('body').append('<div class = "runningTestModule" id = "testModule' + index + '"><div class="testModuleTitle" id = "testModuleTitle' + index + '">' + description + '</div></div>');
-    }
-    static renderTestModuleTime(index, iTestModuleTime) {
-        $('#testModuleTitle' + index).text($('#testModuleTitle' + index).text() + ' ' + iTestModuleTime);
-    }
-    static renderSingularTest(description, bStatus, index, iSingularTestTime) {
-        if (bStatus) {
-            $('#testModule' + index).append('<div class = "passSingularTest">' + description + ' ' + iSingularTestTime + '</div>');
-            return;
-        }
-        $('#testModule' + index).append('<div class = "faildSingularTest" id = "testModule' + index + '">' + description + ' ' + iSingularTestTime + '</div>');
-    }
-}
-;
-
 module.exports = global.Preem = Preem;
