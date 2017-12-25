@@ -6,8 +6,9 @@ class Preem {
         if (!instance) {
             instance = this;
         }
-        //require('sinon');
         require('jQuery');
+        //var sinon = require('sinon');
+
         require('./RendererManager');
         require('./NetworkManager');
         this._setConfig(oConfig);
@@ -23,7 +24,7 @@ class Preem {
                 oIframe.onload = function () {
                     oIframe.onload = null;
                     this.oConfig.appContext = oIframe.contentWindow.document;
-                    document.getElementById('iFrameName').contentWindow.preemJQ = jQuery;
+                    // document.getElementById('iFrameName').contentWindow.preemJQ = jQuery;
                     jQuery.get(this.oConfig.data, function (data) {
 
                         this.oConfig.recordMode = true;
@@ -57,7 +58,7 @@ class Preem {
                             return open.apply(this, arguments);
                         }
 
-                    }.bind(this)).always(function() {
+                    }.bind(this)).always(function () {
                         NetworkManager.setRecordMode(this.oConfig.recordMode)
                     }.bind(this));
                     this._handleSyncTest();
@@ -157,12 +158,7 @@ class Preem {
                     }
                     return this._failTest(sFailsString);
                 }.bind(this.oPreem), [obj, sPassString, sFailsString]));
-            }.bind(this)
-        }
-    }
-
-    then() {
-        return {
+            }.bind(this),
             iDoActionOnElement: function (obj, sPassString, sFailsString) {
                 this.oQueue.enqueue(this.oPreem.addDeferred(function (obj, sPassString, sFailsString) {
                     let applicationObj = document.getElementById('iFrameName').contentWindow.document.getElementById(obj.id);
@@ -182,6 +178,42 @@ class Preem {
                         }
                     }
                     return this._failTest(sFailsString);
+                }.bind(this.oPreem), [obj, sPassString, sFailsString]));
+            }.bind(this),
+            isObject: function (obj, sPassString, sFailsString) {
+                this.oQueue.enqueue(this.oPreem.addDeferred(function (obj, sPassString, sFailsString) {
+                    let applicationJquery = document.getElementById('iFrameName').contentWindow.$,
+                            applicationObj = applicationJquery('#' + obj.id);
+                    if (applicationObj !== null) {
+                        if (applicationObj.is(obj.property)) {
+                            return this._passTest(sPassString);
+                        }
+                        return this._failTest(sFailsString);
+                    }
+
+                }.bind(this.oPreem), [obj, sPassString, sFailsString]));
+            }.bind(this),
+            isElementTextEquals: function (obj, sPassString, sFailsString) {
+                this.oQueue.enqueue(this.oPreem.addDeferred(function (obj, sPassString, sFailsString) {
+                    let applicationObj = document.getElementById('iFrameName').contentWindow.document.getElementById(obj.id);
+                    if (applicationObj !== null) {
+                        if (applicationObj.innerHTML === obj.text) {
+                            return this._passTest(sPassString);
+                        }
+                        return this._failTest(sFailsString);
+                    }
+                }.bind(this.oPreem), [obj, sPassString, sFailsString]));
+            }.bind(this),
+            isElementContainsText: function (obj, sPassString, sFailsString) {
+                this.oQueue.enqueue(this.oPreem.addDeferred(function (obj, sPassString, sFailsString) {
+                    let applicationObj = document.getElementById('iFrameName').contentWindow.document.getElementById(obj.id);
+                    if (applicationObj !== null) {
+                        let sApplicationObj = applicationObj.innerHTML
+                        if (sApplicationObj.includes(obj.text)) {
+                            return this._passTest(sPassString);
+                        }
+                        return this._failTest(sFailsString);
+                    }
                 }.bind(this.oPreem), [obj, sPassString, sFailsString]));
             }.bind(this)
         }
@@ -290,7 +322,7 @@ class Preem {
         }), this.when.bind({
             oPreem: this,
             oQueue: this.aQueues[this.aQueues.length - 1]
-        }), this.then.bind({
+        }), this.when.bind({
             oPreem: this,
             oQueue: this.aQueues[this.aQueues.length - 1]
         }));

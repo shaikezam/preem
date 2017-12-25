@@ -110,8 +110,9 @@ var Preem = function () {
         if (!instance) {
             instance = this;
         }
-        //require('sinon');
         __webpack_require__(2);
+        //var sinon = require('sinon');
+
         __webpack_require__(3);
         __webpack_require__(4);
         this._setConfig(oConfig);
@@ -129,7 +130,7 @@ var Preem = function () {
                     oIframe.onload = function () {
                         oIframe.onload = null;
                         this.oConfig.appContext = oIframe.contentWindow.document;
-                        document.getElementById('iFrameName').contentWindow.preemJQ = jQuery;
+                        // document.getElementById('iFrameName').contentWindow.preemJQ = jQuery;
                         jQuery.get(this.oConfig.data, function (data) {
 
                             this.oConfig.recordMode = true;
@@ -265,13 +266,7 @@ var Preem = function () {
                         }
                         return this._failTest(sFailsString);
                     }.bind(this.oPreem), [obj, sPassString, sFailsString]));
-                }.bind(this)
-            };
-        }
-    }, {
-        key: 'then',
-        value: function then() {
-            return {
+                }.bind(this),
                 iDoActionOnElement: function (obj, sPassString, sFailsString) {
                     this.oQueue.enqueue(this.oPreem.addDeferred(function (obj, sPassString, sFailsString) {
                         var applicationObj = document.getElementById('iFrameName').contentWindow.document.getElementById(obj.id);
@@ -291,6 +286,41 @@ var Preem = function () {
                             }
                         }
                         return this._failTest(sFailsString);
+                    }.bind(this.oPreem), [obj, sPassString, sFailsString]));
+                }.bind(this),
+                isObject: function (obj, sPassString, sFailsString) {
+                    this.oQueue.enqueue(this.oPreem.addDeferred(function (obj, sPassString, sFailsString) {
+                        var applicationJquery = document.getElementById('iFrameName').contentWindow.$,
+                            applicationObj = applicationJquery('#' + obj.id);
+                        if (applicationObj !== null) {
+                            if (applicationObj.is(obj.property)) {
+                                return this._passTest(sPassString);
+                            }
+                            return this._failTest(sFailsString);
+                        }
+                    }.bind(this.oPreem), [obj, sPassString, sFailsString]));
+                }.bind(this),
+                isElementTextEquals: function (obj, sPassString, sFailsString) {
+                    this.oQueue.enqueue(this.oPreem.addDeferred(function (obj, sPassString, sFailsString) {
+                        var applicationObj = document.getElementById('iFrameName').contentWindow.document.getElementById(obj.id);
+                        if (applicationObj !== null) {
+                            if (applicationObj.innerHTML === obj.text) {
+                                return this._passTest(sPassString);
+                            }
+                            return this._failTest(sFailsString);
+                        }
+                    }.bind(this.oPreem), [obj, sPassString, sFailsString]));
+                }.bind(this),
+                isElementContainsText: function (obj, sPassString, sFailsString) {
+                    this.oQueue.enqueue(this.oPreem.addDeferred(function (obj, sPassString, sFailsString) {
+                        var applicationObj = document.getElementById('iFrameName').contentWindow.document.getElementById(obj.id);
+                        if (applicationObj !== null) {
+                            var sApplicationObj = applicationObj.innerHTML;
+                            if (sApplicationObj.includes(obj.text)) {
+                                return this._passTest(sPassString);
+                            }
+                            return this._failTest(sFailsString);
+                        }
                     }.bind(this.oPreem), [obj, sPassString, sFailsString]));
                 }.bind(this)
             };
@@ -401,7 +431,7 @@ var Preem = function () {
             }), this.when.bind({
                 oPreem: this,
                 oQueue: this.aQueues[this.aQueues.length - 1]
-            }), this.then.bind({
+            }), this.when.bind({
                 oPreem: this,
                 oQueue: this.aQueues[this.aQueues.length - 1]
             }));
@@ -421,7 +451,6 @@ var Preem = function () {
                 status: false,
                 description: sFailsString
             };
-            //throw new Error(sFailsString);
         }
     }], [{
         key: 'getInstance',
@@ -10669,9 +10698,9 @@ jQuery.nodeName = nodeName;
 // https://github.com/jrburke/requirejs/wiki/Updating-existing-libraries#wiki-anon
 
 if ( true ) {
-	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = (function() {
+	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = function() {
 		return jQuery;
-	}).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 }
 
