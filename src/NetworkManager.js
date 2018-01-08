@@ -1,37 +1,37 @@
-let oCalls = [],
-        count = 0,
-        recordMode;
-class NetworkManager {
 
+class NetworkManager {
+    static oCalls = [];
+    static count = 0;
+    static recordMode = false;
     static appendCall(obj) {
-        oCalls.push(obj);
+        NetworkManager.oCalls.push(obj);
     }
 
     static getCall(idx) {
-        return oCalls[0];
+        return NetworkManager.oCalls[0];
     }
 
     static setCalls(obj) {
-        oCalls = obj;
-        count = obj.length;
+        NetworkManager.oCalls = obj;
+        NetworkManager.count = obj.length;
     }
 
     static addFields(response, status) {
-        oCalls[count].response = response;
-        oCalls[count].status = status;
+        NetworkManager.oCalls[NetworkManager.count].response = response;
+        NetworkManager.oCalls[NetworkManager.count].status = status;
         NetworkManager.incCount();
     }
-    
+
     static setRecordMode(val) {
-        recordMode = val;
+        NetworkManager.recordMode = val;
     }
-    
+
     static getRecordMode(val) {
-        return recordMode;
+        return NetworkManager.recordMode;
     }
 
     static downlaodDataFile() {
-        var blob = new Blob([JSON.stringify(oCalls)], {
+        var blob = new Blob([JSON.stringify(NetworkManager.oCalls)], {
             type: 'application/octet-stream'
         });
 
@@ -46,11 +46,11 @@ class NetworkManager {
     }
 
     static incCount() {
-        count++;
+        NetworkManager.count++;
     }
 
     static printCalls() {
-        console.log(oCalls);
+        console.log(NetworkManager.oCalls);
     }
 }
 

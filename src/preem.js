@@ -1,16 +1,15 @@
 "use strict";
+window.$ = window.jQuery = require("jquery");
+window.sinon = require('sinon');
+import RendererManager from './RendererManager';
+import NetworkManager from './NetworkManager';
+
 let instance = null;
 class Preem {
-
     constructor(oConfig) {
         if (!instance) {
             instance = this;
         }
-        require('jQuery');
-        //var sinon = require('sinon');
-
-        require('./RendererManager');
-        require('./NetworkManager');
         this._setConfig(oConfig);
         this.aQueues = [];
     }
@@ -25,7 +24,7 @@ class Preem {
                     oIframe.onload = null;
                     this.oConfig.appContext = oIframe.contentWindow.document;
                     // document.getElementById('iFrameName').contentWindow.preemJQ = jQuery;
-                    jQuery.get(this.oConfig.data, function (data) {
+                    $.get(this.oConfig.data, function (data) {
 
                         this.oConfig.recordMode = true;
                         NetworkManager.setCalls(data);
