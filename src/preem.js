@@ -3,6 +3,7 @@ window.$ = window.jQuery = require("jquery");
 window.sinon = require('sinon');
 import RendererManager from './RendererManager';
 import NetworkManager from './NetworkManager';
+import './style/preem.css';
 
 let instance = null;
 class Preem {
