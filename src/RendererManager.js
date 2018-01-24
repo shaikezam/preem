@@ -1,4 +1,4 @@
-class RendererManager {
+export default class RendererManager {
     static renderTestTitle(title) {
         let oDate = new Date();
         title = title + ' ' + oDate.toLocaleDateString() + ' ' + oDate.toLocaleTimeString();
@@ -18,5 +18,3 @@ class RendererManager {
         $('#testModule' + index).append('<div class = "faildSingularTest" id = "testModule' + index + '">' + description + ' ' + iSingularTestTime + '</div>');
     }
 }
-
-module.exports = global.RendererManager = RendererManager;

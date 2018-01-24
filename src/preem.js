@@ -19,50 +19,42 @@ class Preem {
         if (this.oConfig.type === Preem.CONSTANTS.TESTTYPE.SYNC) {
             let sAppPath = this.oConfig.appPath;
             if (sAppPath) {
-                let oIframe = document.getElementById('iFrameName');
-                oIframe.src = sAppPath;
-                oIframe.onload = function () {
-                    oIframe.onload = null;
-                    this.oConfig.appContext = oIframe.contentWindow.document;
-                    // document.getElementById('iFrameName').contentWindow.preemJQ = jQuery;
-                    $.get(this.oConfig.data, function (data) {
-
-                        this.oConfig.recordMode = true;
-                        NetworkManager.setCalls(data);
-
-                        var open = document.getElementById('iFrameName').contentWindow.XMLHttpRequest.prototype.open;
-
-                        let oResponse = NetworkManager.getCall(0);
-                        var server = sinon.fakeServer.create();
-                        server.respondImmediately = true;
-                        document.getElementById('iFrameName').contentWindow.XMLHttpRequest = window.XMLHttpRequest;
-                        for (var i = 0; i < data.length; i++) {
-                            server.respondWith(data[i].method, data[i].url,
-                                    [data[i].status, null,
-                                        data[i].response]);
-                        }
-
-                    }.bind(this)).fail(function (data) {
-                        this.oConfig.recordMode = false;
-                        var open = document.getElementById('iFrameName').contentWindow.XMLHttpRequest.prototype.open;
-                        document.getElementById('iFrameName').contentWindow.XMLHttpRequest.prototype.open = function (sMethod, sURI) {
-                            if (sURI.endsWith(".php")) {
-                                NetworkManager.appendCall({url: sURI, method: sMethod});
-
+                $(window).load(function () {
+                    let oIframe = $('#iFrameName')[0];
+                    oIframe.src = sAppPath;
+                    $('#iFrameName').load(function () {
+                        this.oConfig.appContext = oIframe.contentWindow.document;
+                        // document.getElementById('iFrameName').contentWindow.preemJQ = jQuery;
+                        $.get(this.oConfig.data, function (data) {
+                            this.oConfig.recordMode = true;
+                            NetworkManager.setCalls(data);
+                            var server = sinon.fakeServer.create();
+                            server.respondImmediately = true;
+                            $('#iFrameName')[0].contentWindow.XMLHttpRequest = window.XMLHttpRequest;
+                            for (var i = 0; i < data.length; i++) {
+                                server.respondWith(data[i].method, data[i].url,
+                                        [data[i].status, null,
+                                            data[i].response]);
+                            }
+                        }.bind(this)).fail(function (data) {
+                            this.oConfig.recordMode = false;
+                            var open = $('#iFrameName')[0].contentWindow.XMLHttpRequest.prototype.open;
+                            $('#iFrameName')[0].contentWindow.XMLHttpRequest.prototype.open = function (sMethod, sURI) {
+                                var index = NetworkManager.appendCall({url: sURI, method: sMethod});
                                 this.onreadystatechange = function () {
-                                    if (this.readyState == 4) {
+                                    if (this.readyState === 4) {
                                         NetworkManager.addFields(this.response, this.status);
                                     }
-                                }
-                            }
-                            return open.apply(this, arguments);
-                        }
-
-                    }.bind(this)).always(function () {
-                        NetworkManager.setRecordMode(this.oConfig.recordMode)
+                                };
+                                return open.apply(this, arguments);
+                            };
+                        }.bind(this)).always(function () {
+                            NetworkManager.setRecordMode(this.oConfig.recordMode);
+                        }.bind(this));
+                        this._handleSyncTest();
                     }.bind(this));
-                    this._handleSyncTest();
-                }.bind(this);
+                }.bind(this));
+
             }
         } else {
             this.oQueue.dequeue().deferred();
@@ -152,29 +144,16 @@ class Preem {
         return {
             iCanSeeElement: function (obj, sPassString, sFailsString) {
                 this.oQueue.enqueue(this.oPreem.addDeferred(function (obj, sPassString, sFailsString) {
-                    let applicationObj = document.getElementById('iFrameName').contentWindow.document.getElementById(obj.id);
-                    if (applicationObj !== null) {
-                        return this._passTest(sPassString);
-                    }
-                    return this._failTest(sFailsString);
-                }.bind(this.oPreem), [obj, sPassString, sFailsString]));
-            }.bind(this),
-            iDoActionOnElement: function (obj, sPassString, sFailsString) {
-                this.oQueue.enqueue(this.oPreem.addDeferred(function (obj, sPassString, sFailsString) {
-                    let applicationObj = document.getElementById('iFrameName').contentWindow.document.getElementById(obj.id);
-                    if (applicationObj !== null) {
-                        switch (obj.action) {
-                            case Preem.CONSTANTS.ACTIONS.CLICK:
-                                applicationObj.click();
-                                return this._passTest(sPassString);
-                                break;
-                            case Preem.CONSTANTS.ACTIONS.TYPE:
-                                applicationObj.value = obj.text;
-                                return this._passTest(sPassString);
-                                break;
-                            default:
-
-                                break;
+                    let applicationCtx = $('#iFrameName')[0];
+                    if (obj.el && obj.el instanceof Function) {
+                        $(applicationCtx.contentWindow);
+                        let applicationObj = obj.el.call(applicationCtx.contentWindow);
+                        if (applicationObj) {
+                            if (obj.action) {
+                                Preem.trigger(applicationObj, obj.action);
+                            }
+                            applicationObj.click();
+                            return this._passTest(sPassString);
                         }
                     }
                     return this._failTest(sFailsString);
@@ -358,6 +337,20 @@ class Preem {
                 TYPE: 'TYPE'
             }
         };
+    }
+
+    static trigger(obj, action) {
+        switch (action) {
+            case Preem.CONSTANTS.ACTIONS.CLICK:
+                obj.click();
+                break;
+            case Preem.CONSTANTS.ACTIONS.TYPE:
+                obj.value = obj.text;
+                break;
+            default:
+
+                break;
+        }
     }
 }
 ;

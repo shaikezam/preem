@@ -1,10 +1,10 @@
 
-class NetworkManager {
+export default class NetworkManager {
     static oCalls = [];
     static count = 0;
     static recordMode = false;
     static appendCall(obj) {
-        NetworkManager.oCalls.push(obj);
+        return NetworkManager.oCalls.push(obj) - 1;
     }
 
     static getCall(idx) {
@@ -53,5 +53,3 @@ class NetworkManager {
         console.log(NetworkManager.oCalls);
     }
 }
-
-module.exports = global.NetworkManager = NetworkManager;

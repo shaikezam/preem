@@ -65,6 +65,21 @@
 /************************************************************************/
 /******/ ([
 /* 0 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = function (value) {
+    if (value && value.toString) {
+        return value.toString();
+    }
+    return String(value);
+};
+
+
+/***/ }),
+/* 1 */
 /***/ (function(module, exports) {
 
 var g;
@@ -91,21 +106,6 @@ module.exports = g;
 
 
 /***/ }),
-/* 1 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-module.exports = function (value) {
-    if (value && value.toString) {
-        return value.toString();
-    }
-    return String(value);
-};
-
-
-/***/ }),
 /* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -118,7 +118,7 @@ var functionName = __webpack_require__(7);
 var get = __webpack_require__(41);
 var iterableToString = __webpack_require__(42);
 var typeOf = __webpack_require__(19);
-var valueToString = __webpack_require__(1);
+var valueToString = __webpack_require__(0);
 
 var indexOf = Array.prototype.indexOf;
 
@@ -743,7 +743,7 @@ var deepEqual = __webpack_require__(6).use(sinonMatch);
 var spyCall = __webpack_require__(9);
 var wrapMethod = __webpack_require__(16);
 var sinonFormat = __webpack_require__(3);
-var valueToString = __webpack_require__(1);
+var valueToString = __webpack_require__(0);
 
 /* cache references to library methods so that they also can be stubbed without problems */
 var push = Array.prototype.push;
@@ -1203,7 +1203,7 @@ var sinonMatch = __webpack_require__(2);
 var deepEqual = __webpack_require__(6).use(sinonMatch);
 var functionName = __webpack_require__(7);
 var sinonFormat = __webpack_require__(3);
-var valueToString = __webpack_require__(1);
+var valueToString = __webpack_require__(0);
 var slice = Array.prototype.slice;
 var filter = Array.prototype.filter;
 
@@ -1440,7 +1440,7 @@ var getPropertyDescriptor = __webpack_require__(5);
 var wrapMethod = __webpack_require__(16);
 var stubEntireObject = __webpack_require__(50);
 var throwOnFalsyObject = __webpack_require__(51);
-var valueToString = __webpack_require__(1);
+var valueToString = __webpack_require__(0);
 
 var slice = Array.prototype.slice;
 
@@ -8077,7 +8077,7 @@ module.exports = {
 }(this || {}));
 },{"./encoding-indexes.js":20}]},{},[12])(12)
 });
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ }),
 /* 12 */
@@ -8288,7 +8288,7 @@ mirrorPropAsAssertion("alwaysThrew", "%n did not always throw exception%C");
 
 module.exports = assert;
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ }),
 /* 13 */
@@ -8313,7 +8313,7 @@ module.exports = function timesInWords(count) {
 
 var extend = __webpack_require__(4);
 var functionName = __webpack_require__(7);
-var valueToString = __webpack_require__(1);
+var valueToString = __webpack_require__(0);
 
 var slice = Array.prototype.slice;
 var join = Array.prototype.join;
@@ -8602,7 +8602,7 @@ exports.clearImmediate = clearImmediate;
 
 
 var getPropertyDescriptor = __webpack_require__(5);
-var valueToString = __webpack_require__(1);
+var valueToString = __webpack_require__(0);
 
 var hasOwn = Object.prototype.hasOwnProperty;
 
@@ -9237,7 +9237,7 @@ var sinonSpy = __webpack_require__(8);
 var sinonStub = __webpack_require__(10);
 var sinonMock = __webpack_require__(24);
 var collectOwnMethods = __webpack_require__(52);
-var valueToString = __webpack_require__(1);
+var valueToString = __webpack_require__(0);
 
 var push = Array.prototype.push;
 var filter = Array.prototype.filter;
@@ -9840,7 +9840,7 @@ var stub = __webpack_require__(10);
 var assert = __webpack_require__(12);
 var deepEqual = __webpack_require__(6).use(match);
 var format = __webpack_require__(3);
-var valueToString = __webpack_require__(1);
+var valueToString = __webpack_require__(0);
 
 var slice = Array.prototype.slice;
 var push = Array.prototype.push;
@@ -10218,46 +10218,39 @@ var Preem = function () {
             if (this.oConfig.type === Preem.CONSTANTS.TESTTYPE.SYNC) {
                 var sAppPath = this.oConfig.appPath;
                 if (sAppPath) {
-                    var oIframe = document.getElementById('iFrameName');
-                    oIframe.src = sAppPath;
-                    oIframe.onload = function () {
-                        oIframe.onload = null;
-                        this.oConfig.appContext = oIframe.contentWindow.document;
-                        // document.getElementById('iFrameName').contentWindow.preemJQ = jQuery;
-                        $.get(this.oConfig.data, function (data) {
-
-                            this.oConfig.recordMode = true;
-                            _NetworkManager2.default.setCalls(data);
-
-                            var open = document.getElementById('iFrameName').contentWindow.XMLHttpRequest.prototype.open;
-
-                            var oResponse = _NetworkManager2.default.getCall(0);
-                            var server = sinon.fakeServer.create();
-                            server.respondImmediately = true;
-                            document.getElementById('iFrameName').contentWindow.XMLHttpRequest = window.XMLHttpRequest;
-                            for (var i = 0; i < data.length; i++) {
-                                server.respondWith(data[i].method, data[i].url, [data[i].status, null, data[i].response]);
-                            }
-                        }.bind(this)).fail(function (data) {
-                            this.oConfig.recordMode = false;
-                            var open = document.getElementById('iFrameName').contentWindow.XMLHttpRequest.prototype.open;
-                            document.getElementById('iFrameName').contentWindow.XMLHttpRequest.prototype.open = function (sMethod, sURI) {
-                                if (sURI.endsWith(".php")) {
-                                    _NetworkManager2.default.appendCall({ url: sURI, method: sMethod });
-
+                    $(window).load(function () {
+                        var oIframe = $('#iFrameName')[0];
+                        oIframe.src = sAppPath;
+                        $('#iFrameName').load(function () {
+                            this.oConfig.appContext = oIframe.contentWindow.document;
+                            // document.getElementById('iFrameName').contentWindow.preemJQ = jQuery;
+                            $.get(this.oConfig.data, function (data) {
+                                this.oConfig.recordMode = true;
+                                _NetworkManager2.default.setCalls(data);
+                                var server = sinon.fakeServer.create();
+                                server.respondImmediately = true;
+                                $('#iFrameName')[0].contentWindow.XMLHttpRequest = window.XMLHttpRequest;
+                                for (var i = 0; i < data.length; i++) {
+                                    server.respondWith(data[i].method, data[i].url, [data[i].status, null, data[i].response]);
+                                }
+                            }.bind(this)).fail(function (data) {
+                                this.oConfig.recordMode = false;
+                                var open = $('#iFrameName')[0].contentWindow.XMLHttpRequest.prototype.open;
+                                $('#iFrameName')[0].contentWindow.XMLHttpRequest.prototype.open = function (sMethod, sURI) {
+                                    var index = _NetworkManager2.default.appendCall({ url: sURI, method: sMethod });
                                     this.onreadystatechange = function () {
-                                        if (this.readyState == 4) {
+                                        if (this.readyState === 4) {
                                             _NetworkManager2.default.addFields(this.response, this.status);
                                         }
                                     };
-                                }
-                                return open.apply(this, arguments);
-                            };
-                        }.bind(this)).always(function () {
-                            _NetworkManager2.default.setRecordMode(this.oConfig.recordMode);
+                                    return open.apply(this, arguments);
+                                };
+                            }.bind(this)).always(function () {
+                                _NetworkManager2.default.setRecordMode(this.oConfig.recordMode);
+                            }.bind(this));
+                            this._handleSyncTest();
                         }.bind(this));
-                        this._handleSyncTest();
-                    }.bind(this);
+                    }.bind(this));
                 }
             } else {
                 this.oQueue.dequeue().deferred();
@@ -10353,29 +10346,16 @@ var Preem = function () {
             return {
                 iCanSeeElement: function (obj, sPassString, sFailsString) {
                     this.oQueue.enqueue(this.oPreem.addDeferred(function (obj, sPassString, sFailsString) {
-                        var applicationObj = document.getElementById('iFrameName').contentWindow.document.getElementById(obj.id);
-                        if (applicationObj !== null) {
-                            return this._passTest(sPassString);
-                        }
-                        return this._failTest(sFailsString);
-                    }.bind(this.oPreem), [obj, sPassString, sFailsString]));
-                }.bind(this),
-                iDoActionOnElement: function (obj, sPassString, sFailsString) {
-                    this.oQueue.enqueue(this.oPreem.addDeferred(function (obj, sPassString, sFailsString) {
-                        var applicationObj = document.getElementById('iFrameName').contentWindow.document.getElementById(obj.id);
-                        if (applicationObj !== null) {
-                            switch (obj.action) {
-                                case Preem.CONSTANTS.ACTIONS.CLICK:
-                                    applicationObj.click();
-                                    return this._passTest(sPassString);
-                                    break;
-                                case Preem.CONSTANTS.ACTIONS.TYPE:
-                                    applicationObj.value = obj.text;
-                                    return this._passTest(sPassString);
-                                    break;
-                                default:
-
-                                    break;
+                        var applicationCtx = $('#iFrameName')[0];
+                        if (obj.el && obj.el instanceof Function) {
+                            $(applicationCtx.contentWindow);
+                            var applicationObj = obj.el.call(applicationCtx.contentWindow);
+                            if (applicationObj) {
+                                if (obj.action) {
+                                    Preem.trigger(applicationObj, obj.action);
+                                }
+                                applicationObj.click();
+                                return this._passTest(sPassString);
                             }
                         }
                         return this._failTest(sFailsString);
@@ -10546,6 +10526,21 @@ var Preem = function () {
             };
         }
     }], [{
+        key: "trigger",
+        value: function trigger(obj, action) {
+            switch (action) {
+                case Preem.CONSTANTS.ACTIONS.CLICK:
+                    obj.click();
+                    break;
+                case Preem.CONSTANTS.ACTIONS.TYPE:
+                    obj.value = obj.text;
+                    break;
+                default:
+
+                    break;
+            }
+        }
+    }, {
         key: "getInstance",
         get: function get() {
             return instance;
@@ -10572,14 +10567,18 @@ var Preem = function () {
 
 ;
 module.exports = global.Preem = Preem;
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ }),
 /* 28 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/* WEBPACK VAR INJECTION */(function(global) {
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -10621,15 +10620,18 @@ var RendererManager = function () {
     return RendererManager;
 }();
 
-module.exports = global.RendererManager = RendererManager;
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
+exports.default = RendererManager;
 
 /***/ }),
 /* 29 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/* WEBPACK VAR INJECTION */(function(global) {
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -10643,7 +10645,7 @@ var NetworkManager = function () {
     _createClass(NetworkManager, null, [{
         key: 'appendCall',
         value: function appendCall(obj) {
-            NetworkManager.oCalls.push(obj);
+            return NetworkManager.oCalls.push(obj) - 1;
         }
     }, {
         key: 'getCall',
@@ -10707,10 +10709,7 @@ var NetworkManager = function () {
 NetworkManager.oCalls = [];
 NetworkManager.count = 0;
 NetworkManager.recordMode = false;
-
-
-module.exports = global.NetworkManager = NetworkManager;
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
+exports.default = NetworkManager;
 
 /***/ }),
 /* 30 */
@@ -21088,9 +21087,9 @@ jQuery.fn.andSelf = jQuery.fn.addBack;
 // https://github.com/jrburke/requirejs/wiki/Updating-existing-libraries#wiki-anon
 
 if ( true ) {
-	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = (function() {
+	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = function() {
 		return jQuery;
-	}).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 }
 
@@ -21474,7 +21473,7 @@ module.exports = function orderByFirstCall(spies) {
     return Formatio.prototype;
 });
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ }),
 /* 40 */
@@ -22438,7 +22437,7 @@ function get(object, path, defaultValue) {
 
 module.exports = get;
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ }),
 /* 42 */
@@ -22874,7 +22873,7 @@ return typeDetect;
 
 })));
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ }),
 /* 44 */
@@ -23067,7 +23066,7 @@ return typeDetect;
     attachTo.clearImmediate = clearImmediate;
 }(typeof self === "undefined" ? typeof global === "undefined" ? this : global : self));
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0), __webpack_require__(21)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1), __webpack_require__(21)))
 
 /***/ }),
 /* 45 */
@@ -25357,7 +25356,7 @@ module.exports = stubEntireObject;
 
 "use strict";
 
-var valueToString = __webpack_require__(1);
+var valueToString = __webpack_require__(0);
 
 function throwOnFalsyObject(object, property) {
     if (property && !object) {
@@ -26365,7 +26364,7 @@ exports.install = function install(config) {
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}]},{},[1])(1)
 });
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ }),
 /* 55 */
@@ -26385,3 +26384,4 @@ module.exports = {
 
 /***/ })
 /******/ ]);
+//# sourceMappingURL=preem.js.map
