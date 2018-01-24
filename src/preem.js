@@ -16,48 +16,26 @@ class Preem {
     }
 
     start() {
-        if (this.oConfig.type === Preem.CONSTANTS.TESTTYPE.SYNC) {
-            let sAppPath = this.oConfig.appPath;
-            if (sAppPath) {
-                $(window).load(function () {
-                    let oIframe = $('#iFrameName')[0];
-                    oIframe.src = sAppPath;
-                    $('#iFrameName').load(function () {
-                        this.oConfig.appContext = oIframe.contentWindow.document;
-                        // document.getElementById('iFrameName').contentWindow.preemJQ = jQuery;
-                        $.get(this.oConfig.data, function (data) {
-                            this.oConfig.recordMode = true;
-                            NetworkManager.setCalls(data);
-                            var server = sinon.fakeServer.create();
-                            server.respondImmediately = true;
-                            $('#iFrameName')[0].contentWindow.XMLHttpRequest = window.XMLHttpRequest;
-                            for (var i = 0; i < data.length; i++) {
-                                server.respondWith(data[i].method, data[i].url,
-                                        [data[i].status, null,
-                                            data[i].response]);
-                            }
-                        }.bind(this)).fail(function (data) {
-                            this.oConfig.recordMode = false;
-                            var open = $('#iFrameName')[0].contentWindow.XMLHttpRequest.prototype.open;
-                            $('#iFrameName')[0].contentWindow.XMLHttpRequest.prototype.open = function (sMethod, sURI) {
-                                var index = NetworkManager.appendCall({url: sURI, method: sMethod});
-                                this.onreadystatechange = function () {
-                                    if (this.readyState === 4) {
-                                        NetworkManager.addFields(this.response, this.status);
-                                    }
-                                };
-                                return open.apply(this, arguments);
-                            };
-                        }.bind(this)).always(function () {
-                            NetworkManager.setRecordMode(this.oConfig.recordMode);
-                        }.bind(this));
-                        this._handleSyncTest();
+        let sAppPath = this.oConfig.appPath;
+        if (sAppPath) {
+            $(window).load(function () {
+                let oIframe = $('#iFrameName')[0];
+                oIframe.src = sAppPath;
+                $('#iFrameName').load(function () {
+                    this.oConfig.appContext = oIframe.contentWindow.document;
+                    $.get(this.oConfig.data, function (data) {
+                        this.oConfig.recordMode = NetworkManager.CONSTANTS.RECORD_MODE.PLAY;
+                        NetworkManager.startPlayMode.call(this, data);
+                    }.bind(this)).fail(function (data) {
+                        this.oConfig.recordMode = NetworkManager.CONSTANTS.RECORD_MODE.RECORD;
+                        NetworkManager.startRecordMode.call(this);
+                    }.bind(this)).always(function () {
+                        NetworkManager.setRecordMode(this.oConfig.recordMode);
                     }.bind(this));
+                    this._start();
                 }.bind(this));
+            }.bind(this));
 
-            }
-        } else {
-            this.oQueue.dequeue().deferred();
         }
     }
 
@@ -76,7 +54,6 @@ class Preem {
 
     _setConfig(_oConfig) {
         this.oConfig = {
-            type: _oConfig ? _oConfig.type || Preem.CONSTANTS.TESTTYPE.SYNC : Preem.CONSTANTS.TESTTYPE.SYNC,
             onFinish: _oConfig ? _oConfig.onFinish || null : null,
             onStart: _oConfig ? _oConfig.onStart || null : null,
             title: _oConfig.title,
@@ -85,7 +62,7 @@ class Preem {
         };
     }
 
-    _handleSyncTest() {
+    _start() {
         this._handleStart();
         let oTest = this.aQueues[0].dequeue();
         RendererManager.renderTestModule(this.aQueues[0].description, 0);
@@ -187,7 +164,7 @@ class Preem {
                 this.oQueue.enqueue(this.oPreem.addDeferred(function (obj, sPassString, sFailsString) {
                     let applicationObj = document.getElementById('iFrameName').contentWindow.document.getElementById(obj.id);
                     if (applicationObj !== null) {
-                        let sApplicationObj = applicationObj.innerHTML
+                        let sApplicationObj = applicationObj.innerHTML;
                         if (sApplicationObj.includes(obj.text)) {
                             return this._passTest(sPassString);
                         }
@@ -195,7 +172,7 @@ class Preem {
                     }
                 }.bind(this.oPreem), [obj, sPassString, sFailsString]));
             }.bind(this)
-        }
+        };
     }
 
     beforeEach(fnCallback) {
@@ -216,7 +193,7 @@ class Preem {
                     if (oQueue.isEmpty()) {
                         RendererManager.renderTestModuleTime(iTestModuleIndex, iTestModuleTime.toFixed(4));
                         if (iTestModuleIndex === oTestModules.length - 1) {
-                            if (!NetworkManager.getRecordMode()) {
+                            if (NetworkManager.getRecordMode() === NetworkManager.CONSTANTS.RECORD_MODE.RECORD) {
                                 NetworkManager.downlaodDataFile();
                             }
                             return;
@@ -248,9 +225,8 @@ class Preem {
                 this._startInterval();
                 this.iTimeoutId = setTimeout(function () {
                     window.clearInterval(this.iIntervalId);
-                    this.iFinishSingularTestTime = (window.performance.now() - this.iStartSingularTestTime).toFixed(4);
                     this.oDeferred.reject();
-                }.bind(this), 3000);
+                }.bind(this), 6000);
             },
             clearTimeout: function () {
                 window.clearInterval(this.iIntervalId);
@@ -305,10 +281,6 @@ class Preem {
             oPreem: this,
             oQueue: this.aQueues[this.aQueues.length - 1]
         }));
-    }
-
-    static get getInstance() {
-        return instance;
     }
 
     _passTest(sPassString) {

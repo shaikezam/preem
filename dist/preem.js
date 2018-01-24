@@ -10215,45 +10215,25 @@ var Preem = function () {
     _createClass(Preem, [{
         key: "start",
         value: function start() {
-            if (this.oConfig.type === Preem.CONSTANTS.TESTTYPE.SYNC) {
-                var sAppPath = this.oConfig.appPath;
-                if (sAppPath) {
-                    $(window).load(function () {
-                        var oIframe = $('#iFrameName')[0];
-                        oIframe.src = sAppPath;
-                        $('#iFrameName').load(function () {
-                            this.oConfig.appContext = oIframe.contentWindow.document;
-                            // document.getElementById('iFrameName').contentWindow.preemJQ = jQuery;
-                            $.get(this.oConfig.data, function (data) {
-                                this.oConfig.recordMode = true;
-                                _NetworkManager2.default.setCalls(data);
-                                var server = sinon.fakeServer.create();
-                                server.respondImmediately = true;
-                                $('#iFrameName')[0].contentWindow.XMLHttpRequest = window.XMLHttpRequest;
-                                for (var i = 0; i < data.length; i++) {
-                                    server.respondWith(data[i].method, data[i].url, [data[i].status, null, data[i].response]);
-                                }
-                            }.bind(this)).fail(function (data) {
-                                this.oConfig.recordMode = false;
-                                var open = $('#iFrameName')[0].contentWindow.XMLHttpRequest.prototype.open;
-                                $('#iFrameName')[0].contentWindow.XMLHttpRequest.prototype.open = function (sMethod, sURI) {
-                                    var index = _NetworkManager2.default.appendCall({ url: sURI, method: sMethod });
-                                    this.onreadystatechange = function () {
-                                        if (this.readyState === 4) {
-                                            _NetworkManager2.default.addFields(this.response, this.status);
-                                        }
-                                    };
-                                    return open.apply(this, arguments);
-                                };
-                            }.bind(this)).always(function () {
-                                _NetworkManager2.default.setRecordMode(this.oConfig.recordMode);
-                            }.bind(this));
-                            this._handleSyncTest();
+            var sAppPath = this.oConfig.appPath;
+            if (sAppPath) {
+                $(window).load(function () {
+                    var oIframe = $('#iFrameName')[0];
+                    oIframe.src = sAppPath;
+                    $('#iFrameName').load(function () {
+                        this.oConfig.appContext = oIframe.contentWindow.document;
+                        $.get(this.oConfig.data, function (data) {
+                            this.oConfig.recordMode = _NetworkManager2.default.CONSTANTS.RECORD_MODE.PLAY;
+                            _NetworkManager2.default.startPlayMode.call(this, data);
+                        }.bind(this)).fail(function (data) {
+                            this.oConfig.recordMode = _NetworkManager2.default.CONSTANTS.RECORD_MODE.RECORD;
+                            _NetworkManager2.default.startRecordMode.call(this);
+                        }.bind(this)).always(function () {
+                            _NetworkManager2.default.setRecordMode(this.oConfig.recordMode);
                         }.bind(this));
+                        this._start();
                     }.bind(this));
-                }
-            } else {
-                this.oQueue.dequeue().deferred();
+                }.bind(this));
             }
         }
     }, {
@@ -10275,7 +10255,6 @@ var Preem = function () {
         key: "_setConfig",
         value: function _setConfig(_oConfig) {
             this.oConfig = {
-                type: _oConfig ? _oConfig.type || Preem.CONSTANTS.TESTTYPE.SYNC : Preem.CONSTANTS.TESTTYPE.SYNC,
                 onFinish: _oConfig ? _oConfig.onFinish || null : null,
                 onStart: _oConfig ? _oConfig.onStart || null : null,
                 title: _oConfig.title,
@@ -10284,8 +10263,8 @@ var Preem = function () {
             };
         }
     }, {
-        key: "_handleSyncTest",
-        value: function _handleSyncTest() {
+        key: "_start",
+        value: function _start() {
             this._handleStart();
             var oTest = this.aQueues[0].dequeue();
             _RendererManager2.default.renderTestModule(this.aQueues[0].description, 0);
@@ -10419,7 +10398,7 @@ var Preem = function () {
                         if (oQueue.isEmpty()) {
                             _RendererManager2.default.renderTestModuleTime(iTestModuleIndex, iTestModuleTime.toFixed(4));
                             if (iTestModuleIndex === oTestModules.length - 1) {
-                                if (!_NetworkManager2.default.getRecordMode()) {
+                                if (_NetworkManager2.default.getRecordMode() === _NetworkManager2.default.CONSTANTS.RECORD_MODE.RECORD) {
                                     _NetworkManager2.default.downlaodDataFile();
                                 }
                                 return;
@@ -10449,9 +10428,8 @@ var Preem = function () {
                     this._startInterval();
                     this.iTimeoutId = setTimeout(function () {
                         window.clearInterval(this.iIntervalId);
-                        this.iFinishSingularTestTime = (window.performance.now() - this.iStartSingularTestTime).toFixed(4);
                         this.oDeferred.reject();
-                    }.bind(this), 3000);
+                    }.bind(this), 6000);
                 },
                 clearTimeout: function clearTimeout() {
                     window.clearInterval(this.iIntervalId);
@@ -10539,11 +10517,6 @@ var Preem = function () {
 
                     break;
             }
-        }
-    }, {
-        key: "getInstance",
-        get: function get() {
-            return instance;
         }
     }, {
         key: "CONSTANTS",
@@ -10660,9 +10633,9 @@ var NetworkManager = function () {
         }
     }, {
         key: 'addFields',
-        value: function addFields(response, status) {
-            NetworkManager.oCalls[NetworkManager.count].response = response;
-            NetworkManager.oCalls[NetworkManager.count].status = status;
+        value: function addFields(response, status, callIndex) {
+            NetworkManager.oCalls[callIndex].response = response;
+            NetworkManager.oCalls[callIndex].status = status;
             NetworkManager.incCount();
         }
     }, {
@@ -10680,10 +10653,9 @@ var NetworkManager = function () {
         value: function downlaodDataFile() {
             var blob = new Blob([JSON.stringify(NetworkManager.oCalls)], {
                 type: 'application/octet-stream'
-            });
-
-            var url = URL.createObjectURL(blob);
-            var link = document.createElement('a');
+            }),
+                url = URL.createObjectURL(blob),
+                link = document.createElement('a');
             link.setAttribute('href', url);
             link.setAttribute('download', 'data.json');
 
@@ -10701,6 +10673,41 @@ var NetworkManager = function () {
         value: function printCalls() {
             console.log(NetworkManager.oCalls);
         }
+    }, {
+        key: 'startPlayMode',
+        value: function startPlayMode(data) {
+            NetworkManager.setCalls(data);
+            var server = sinon.fakeServer.create();
+            server.respondImmediately = true;
+            $('#iFrameName')[0].contentWindow.XMLHttpRequest = window.XMLHttpRequest;
+            for (var i = 0; i < data.length; i++) {
+                server.respondWith(data[i].method, data[i].url, [data[i].status, null, data[i].response]);
+            }
+        }
+    }, {
+        key: 'startRecordMode',
+        value: function startRecordMode() {
+            var open = $('#iFrameName')[0].contentWindow.XMLHttpRequest.prototype.open;
+            $('#iFrameName')[0].contentWindow.XMLHttpRequest.prototype.open = function (sMethod, sURI) {
+                var callIndex = NetworkManager.appendCall({ url: sURI, method: sMethod });
+                this.onreadystatechange = function () {
+                    if (this.readyState === 4) {
+                        NetworkManager.addFields(this.response, this.status, callIndex);
+                    }
+                };
+                return open.apply(this, arguments);
+            };
+        }
+    }, {
+        key: 'CONSTANTS',
+        get: function get() {
+            return {
+                RECORD_MODE: {
+                    PLAY: 'Play',
+                    RECORD: 'Record'
+                }
+            };
+        }
     }]);
 
     return NetworkManager;
@@ -10708,7 +10715,6 @@ var NetworkManager = function () {
 
 NetworkManager.oCalls = [];
 NetworkManager.count = 0;
-NetworkManager.recordMode = false;
 exports.default = NetworkManager;
 
 /***/ }),
@@ -10751,7 +10757,7 @@ exports = module.exports = __webpack_require__(32)(false);
 
 
 // module
-exports.push([module.i, "body {\r\n    margin: 1%;\r\n    font-family: \"Verdana\";\r\n}\r\n\r\n.testModuleTitle {\r\n    padding: 5px;\r\n}\r\n\r\n.runningTestModule {\r\n    text-decoration: underline;\r\n    font-size: x-large;\r\n    align-content: center;\r\n    margin: 0 5px 5px 0;\r\n    width: 100%;\r\n    padding: 5px;\r\n    border: 3px solid black;\r\n}\r\n\r\n.passTestModule {\r\n    border-color: #5ED65C;\r\n}\r\n\r\n.faildTestModule {\r\n    border-color: #D83323;\r\n}\r\n\r\n.passSingularTest {\r\n    font-size: large;\r\n    margin-bottom: 5px;\r\n    padding: 5px;\r\n    border: 3px solid green;\r\n}\r\n\r\n.faildSingularTest {\r\n    font-size: large;\r\n    margin-bottom: 5px;\r\n    padding: 5px;\r\n    border: 3px solid red;\r\n}\r\n#iFrameName {\r\n    border: 3px solid black;\r\n    width: 100%;\r\n    height: 500px;\r\n}", ""]);
+exports.push([module.i, "body {\r\n    margin: 1%;\r\n    font-family: \"Verdana\";\r\n}\r\n\r\n.testModuleTitle {\r\n    padding: 5px;\r\n}\r\n\r\n.runningTestModule {\r\n    text-decoration: underline;\r\n    font-size: x-large;\r\n    align-content: center;\r\n    margin: 0 5px 5px 0;\r\n    width: 100%;\r\n    padding: 5px;\r\n    border: 3px solid black;\r\n}\r\n\r\n.passTestModule {\r\n    border-color: #7CFC00;\r\n}\r\n\r\n.faildTestModule {\r\n    border-color: #FF0000;\r\n}\r\n\r\n.passSingularTest {\r\n    font-size: large;\r\n    margin-bottom: 5px;\r\n    padding: 5px;\r\n    border: 3px solid #7CFC00;\r\n}\r\n\r\n.faildSingularTest {\r\n    font-size: large;\r\n    margin-bottom: 5px;\r\n    padding: 5px;\r\n    border: 3px solid #FF0000;\r\n}\r\n#iFrameName {\r\n    border: 3px solid black;\r\n    width: 100%;\r\n    height: 500px;\r\n    float:right;\r\n}", ""]);
 
 // exports
 
