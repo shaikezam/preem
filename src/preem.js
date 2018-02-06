@@ -19,10 +19,8 @@ class Preem {
         let sAppPath = this.oConfig.appPath;
         if (sAppPath) {
             $(window).load(function () {
-                let oIframe = $('#iFrameName')[0];
-                oIframe.src = sAppPath;
-                $('#iFrameName').load(function () {
-                    this.oConfig.appContext = oIframe.contentWindow.document;
+                let oIframe = RendererManager.createIframeAndAppendSrc(sAppPath);
+                oIframe.load(function () {
                     $.get(this.oConfig.data, function (data) {
                         this.oConfig.recordMode = NetworkManager.CONSTANTS.RECORD_MODE.PLAY;
                         NetworkManager.startPlayMode.call(this, data);
@@ -35,7 +33,6 @@ class Preem {
                     this._start();
                 }.bind(this));
             }.bind(this));
-
         }
     }
 
@@ -64,10 +61,7 @@ class Preem {
 
     _start() {
         this._handleStart();
-        let oTest = this.aQueues[0].dequeue();
-        RendererManager.renderTestModule(this.aQueues[0].description, 0);
-        oTest.deferred(this.aQueues[0], 0, 0, this.aQueues);
-        this._handleDone();
+        this.testRunner(0, this.aQueues, 0);
     }
 
     checkIf(oTestedObject) {
@@ -124,7 +118,7 @@ class Preem {
                     let applicationCtx = $('#iFrameName')[0];
                     if (obj.el && obj.el instanceof Function) {
                         $(applicationCtx.contentWindow);
-                        let applicationObj = obj.el.call(applicationCtx.contentWindow);
+                        let applicationObj = obj.el(applicationCtx.contentWindow);
                         if (applicationObj) {
                             if (obj.action) {
                                 Preem.trigger(applicationObj, obj.action);
@@ -179,35 +173,44 @@ class Preem {
         this.oQueue.beforeEach = fnCallback;
     }
 
-    addDeferred(fn, args) {
-
-        let _dft = {
-            deferred: function (oQueue, iTestModuleIndex, iTestModuleTime, oTestModules) {
-                this.oDeferred = $.Deferred().done(function () {
-                    this.clearTimeout();
-                }.bind(this)).fail(function () {
-                    this.clearTimeout();
-                }.bind(this)).always(function () {
-                    this.iFinishSingularTestTime = (window.performance.now() - this.iStartSingularTestTime).toFixed(4);
-                    RendererManager.renderSingularTest(this.returnTestResults.description, this.returnTestResults.status, iTestModuleIndex, this.iFinishSingularTestTime);
-                    if (oQueue.isEmpty()) {
-                        RendererManager.renderTestModuleTime(iTestModuleIndex, iTestModuleTime.toFixed(4));
-                        if (iTestModuleIndex === oTestModules.length - 1) {
-                            if (NetworkManager.getRecordMode() === NetworkManager.CONSTANTS.RECORD_MODE.RECORD) {
-                                NetworkManager.downlaodDataFile();
-                            }
-                            return;
-                        } else {
-                            iTestModuleIndex++;
-                            RendererManager.renderTestModule(oTestModules[iTestModuleIndex].description, iTestModuleIndex);
-                            oTestModules[iTestModuleIndex].dequeue().deferred(oTestModules[iTestModuleIndex], iTestModuleIndex, (iTestModuleTime + parseFloat(this.iFinishSingularTestTime)), oTestModules);
-                            return;
-                        }
+    testRunner(currentTestModuleIndex, testModules, currentTestModuleDuration) {
+        let currentTestModule = testModules[currentTestModuleIndex];
+        !currentTestModule.isTouched ? RendererManager.renderTestModule(currentTestModule.description, currentTestModuleIndex) : null;
+        let currentTest = currentTestModule.dequeue(),
+                currentTestDeferred = currentTest.deferred();
+        currentTestDeferred.done(function () {
+            this.clearTimeout();
+        }.bind(currentTest)).fail(function () {
+            this.clearTimeout();
+        }.bind(currentTest)).always(function () {
+            this.currentTest.iFinishSingularTestTime = (window.performance.now() - this.currentTest.iStartSingularTestTime).toFixed(4);
+            RendererManager.renderSingularTest(this.currentTest.returnTestResults.description, this.currentTest.returnTestResults.status, currentTestModuleIndex, this.currentTest.iFinishSingularTestTime);
+            if (currentTestModule.isEmpty()) {
+                RendererManager.renderTestModuleTime(currentTestModuleIndex, currentTestModuleDuration + parseFloat(this.currentTest.iFinishSingularTestTime));
+                if (currentTestModuleIndex === testModules.length - 1) {
+                    if (NetworkManager.getRecordMode() === NetworkManager.CONSTANTS.RECORD_MODE.RECORD) {
+                        NetworkManager.downlaodDataFile();
                     }
-                    oQueue.dequeue().deferred(oQueue, iTestModuleIndex, (iTestModuleTime + parseFloat(this.iFinishSingularTestTime)), oTestModules);
+                    this.preem._handleDone();
+                    return;
+                } else {
+                    currentTestModuleIndex++;
+                    this.preem.testRunner(currentTestModuleIndex, testModules, 0);
+                    return;
+                }
+            }
+            this.preem.testRunner(currentTestModuleIndex, testModules, (currentTestModuleDuration + parseFloat(this.currentTest.iFinishSingularTestTime)));
+        }.bind({
+            currentTest: currentTest,
+            preem: this
+        }));
+        currentTest._startTimeout();
+    }
 
-                }.bind(this));
-                this._startTimeout();
+    addDeferred(fn, args) {
+        return {
+            deferred: function () {
+                this.oDeferred = $.Deferred();
                 return this.oDeferred;
             },
             _startInterval: function () {
@@ -215,9 +218,7 @@ class Preem {
                     this.iStartSingularTestTime = window.performance.now();
                     this.returnTestResults = this.fn.apply(this, this.args);
                     if (this.returnTestResults.status) {
-
                         this.oDeferred.resolve();
-
                     }
                 }.bind(this), 200);
             },
@@ -235,7 +236,6 @@ class Preem {
             fn: fn,
             args: args
         };
-        return _dft;
     }
 
     createQueue(sDescription, beforeEach) {
@@ -245,6 +245,9 @@ class Preem {
                 this._arr.push(node);
             },
             dequeue: function () {
+                if (!this.isTouched) {
+                    this.isTouched = true;
+                }
                 let temp = null;
                 if (!this.isEmpty()) {
                     temp = this._arr[0];
@@ -258,12 +261,10 @@ class Preem {
             peek: function () {
                 return this._arr[0];
             },
-            removeQueue: function () {
-                this._arr.length = 0;
-            },
+            isTouched: false,
             description: sDescription,
             beforeEach: beforeEach
-        }
+        };
     }
 
     testModule(sDescription, fn) {

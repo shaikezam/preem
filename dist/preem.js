@@ -10218,10 +10218,11 @@ var Preem = function () {
             var sAppPath = this.oConfig.appPath;
             if (sAppPath) {
                 $(window).load(function () {
-                    var oIframe = $('#iFrameName')[0];
-                    oIframe.src = sAppPath;
-                    $('#iFrameName').load(function () {
-                        this.oConfig.appContext = oIframe.contentWindow.document;
+                    //let oIframe = $('#iFrameName')[0];
+                    //oIframe.src = sAppPath;
+                    var oIframe = _RendererManager2.default.createIframeAndAppendSrc(sAppPath);
+                    oIframe.load(function () {
+                        //this.oConfig.appContext = oIframe.contentWindow.document;
                         $.get(this.oConfig.data, function (data) {
                             this.oConfig.recordMode = _NetworkManager2.default.CONSTANTS.RECORD_MODE.PLAY;
                             _NetworkManager2.default.startPlayMode.call(this, data);
@@ -10266,10 +10267,7 @@ var Preem = function () {
         key: "_start",
         value: function _start() {
             this._handleStart();
-            var oTest = this.aQueues[0].dequeue();
-            _RendererManager2.default.renderTestModule(this.aQueues[0].description, 0);
-            oTest.deferred(this.aQueues[0], 0, 0, this.aQueues);
-            this._handleDone();
+            this.testRunner(0, this.aQueues, 0);
         }
     }, {
         key: "checkIf",
@@ -10328,7 +10326,7 @@ var Preem = function () {
                         var applicationCtx = $('#iFrameName')[0];
                         if (obj.el && obj.el instanceof Function) {
                             $(applicationCtx.contentWindow);
-                            var applicationObj = obj.el.call(applicationCtx.contentWindow);
+                            var applicationObj = obj.el(applicationCtx.contentWindow);
                             if (applicationObj) {
                                 if (obj.action) {
                                     Preem.trigger(applicationObj, obj.action);
@@ -10383,35 +10381,46 @@ var Preem = function () {
             this.oQueue.beforeEach = fnCallback;
         }
     }, {
+        key: "testRunner",
+        value: function testRunner(currentTestModuleIndex, testModules, currentTestModuleDuration) {
+            var currentTestModule = testModules[currentTestModuleIndex];
+            !currentTestModule.isTouched ? _RendererManager2.default.renderTestModule(currentTestModule.description, currentTestModuleIndex) : null;
+            var currentTest = currentTestModule.dequeue(),
+                currentTestDeferred = currentTest.deferred();
+            currentTestDeferred.done(function () {
+                this.clearTimeout();
+            }.bind(currentTest)).fail(function () {
+                this.clearTimeout();
+            }.bind(currentTest)).always(function () {
+                this.currentTest.iFinishSingularTestTime = (window.performance.now() - this.currentTest.iStartSingularTestTime).toFixed(4);
+                _RendererManager2.default.renderSingularTest(this.currentTest.returnTestResults.description, this.currentTest.returnTestResults.status, currentTestModuleIndex, this.currentTest.iFinishSingularTestTime);
+                if (currentTestModule.isEmpty()) {
+                    _RendererManager2.default.renderTestModuleTime(currentTestModuleIndex, currentTestModuleDuration + parseFloat(this.currentTest.iFinishSingularTestTime));
+                    if (currentTestModuleIndex === testModules.length - 1) {
+                        if (_NetworkManager2.default.getRecordMode() === _NetworkManager2.default.CONSTANTS.RECORD_MODE.RECORD) {
+                            _NetworkManager2.default.downlaodDataFile();
+                        }
+                        this.preem._handleDone();
+                        return;
+                    } else {
+                        currentTestModuleIndex++;
+                        this.preem.testRunner(currentTestModuleIndex, testModules, 0);
+                        return;
+                    }
+                }
+                this.preem.testRunner(currentTestModuleIndex, testModules, currentTestModuleDuration + parseFloat(this.currentTest.iFinishSingularTestTime));
+            }.bind({
+                currentTest: currentTest,
+                preem: this
+            }));
+            currentTest._startTimeout();
+        }
+    }, {
         key: "addDeferred",
         value: function addDeferred(fn, args) {
-
-            var _dft = {
-                deferred: function deferred(oQueue, iTestModuleIndex, iTestModuleTime, oTestModules) {
-                    this.oDeferred = $.Deferred().done(function () {
-                        this.clearTimeout();
-                    }.bind(this)).fail(function () {
-                        this.clearTimeout();
-                    }.bind(this)).always(function () {
-                        this.iFinishSingularTestTime = (window.performance.now() - this.iStartSingularTestTime).toFixed(4);
-                        _RendererManager2.default.renderSingularTest(this.returnTestResults.description, this.returnTestResults.status, iTestModuleIndex, this.iFinishSingularTestTime);
-                        if (oQueue.isEmpty()) {
-                            _RendererManager2.default.renderTestModuleTime(iTestModuleIndex, iTestModuleTime.toFixed(4));
-                            if (iTestModuleIndex === oTestModules.length - 1) {
-                                if (_NetworkManager2.default.getRecordMode() === _NetworkManager2.default.CONSTANTS.RECORD_MODE.RECORD) {
-                                    _NetworkManager2.default.downlaodDataFile();
-                                }
-                                return;
-                            } else {
-                                iTestModuleIndex++;
-                                _RendererManager2.default.renderTestModule(oTestModules[iTestModuleIndex].description, iTestModuleIndex);
-                                oTestModules[iTestModuleIndex].dequeue().deferred(oTestModules[iTestModuleIndex], iTestModuleIndex, iTestModuleTime + parseFloat(this.iFinishSingularTestTime), oTestModules);
-                                return;
-                            }
-                        }
-                        oQueue.dequeue().deferred(oQueue, iTestModuleIndex, iTestModuleTime + parseFloat(this.iFinishSingularTestTime), oTestModules);
-                    }.bind(this));
-                    this._startTimeout();
+            return {
+                deferred: function deferred() {
+                    this.oDeferred = $.Deferred();
                     return this.oDeferred;
                 },
                 _startInterval: function _startInterval() {
@@ -10419,7 +10428,6 @@ var Preem = function () {
                         this.iStartSingularTestTime = window.performance.now();
                         this.returnTestResults = this.fn.apply(this, this.args);
                         if (this.returnTestResults.status) {
-
                             this.oDeferred.resolve();
                         }
                     }.bind(this), 200);
@@ -10438,7 +10446,6 @@ var Preem = function () {
                 fn: fn,
                 args: args
             };
-            return _dft;
         }
     }, {
         key: "createQueue",
@@ -10449,6 +10456,9 @@ var Preem = function () {
                     this._arr.push(node);
                 },
                 dequeue: function dequeue() {
+                    if (!this.isTouched) {
+                        this.isTouched = true;
+                    }
                     var temp = null;
                     if (!this.isEmpty()) {
                         temp = this._arr[0];
@@ -10462,9 +10472,7 @@ var Preem = function () {
                 peek: function peek() {
                     return this._arr[0];
                 },
-                removeQueue: function removeQueue() {
-                    this._arr.length = 0;
-                },
+                isTouched: false,
                 description: sDescription,
                 beforeEach: beforeEach
             };
@@ -10587,6 +10595,12 @@ var RendererManager = function () {
                 return;
             }
             $('#testModule' + index).append('<div class = "faildSingularTest" id = "testModule' + index + '">' + description + ' ' + iSingularTestTime + '</div>');
+        }
+    }, {
+        key: 'createIframeAndAppendSrc',
+        value: function createIframeAndAppendSrc(src) {
+            $('<iframe src= ' + src + ' id="iFrameName"></iframe>').appendTo('body');
+            return $('#iFrameName');
         }
     }]);
 

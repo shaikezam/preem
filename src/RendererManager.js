@@ -17,4 +17,8 @@ export default class RendererManager {
         }
         $('#testModule' + index).append('<div class = "faildSingularTest" id = "testModule' + index + '">' + description + ' ' + iSingularTestTime + '</div>');
     }
+    static createIframeAndAppendSrc(src) {
+        $('<iframe src= ' + src + ' id="iFrameName"></iframe>').appendTo('body');
+        return $('#iFrameName');
+    }
 }
