@@ -55,7 +55,9 @@ class Preem {
             onStart: _oConfig ? _oConfig.onStart || null : null,
             title: _oConfig.title,
             appPath: _oConfig.networkManager && _oConfig.networkManager.appPath ? _oConfig.networkManager.appPath : "",
-            data: _oConfig.networkManager && _oConfig.networkManager.data ? _oConfig.networkManager.data : ""
+            data: _oConfig.networkManager && _oConfig.networkManager.data ? _oConfig.networkManager.data : "",
+            downloadReportFormat: _oConfig.downloadReport && _oConfig.downloadReport.format ? _oConfig.downloadReport.format : false,
+            downloadReportName: _oConfig.downloadReport && _oConfig.downloadReport.name ? _oConfig.downloadReport.name : false
         };
     }
 
@@ -184,6 +186,8 @@ class Preem {
             this.clearTimeout();
         }.bind(currentTest)).always(function () {
             this.currentTest.iFinishSingularTestTime = (window.performance.now() - this.currentTest.iStartSingularTestTime).toFixed(4);
+            console.log(this.preem.oConfig.downloadReportFormat);
+            console.log(this.preem.oConfig.downloadReportName);
             RendererManager.renderSingularTest(this.currentTest.returnTestResults.description, this.currentTest.returnTestResults.status, currentTestModuleIndex, this.currentTest.iFinishSingularTestTime);
             if (currentTestModule.isEmpty()) {
                 RendererManager.renderTestModuleTime(currentTestModuleIndex, currentTestModuleDuration + parseFloat(this.currentTest.iFinishSingularTestTime));
@@ -308,6 +312,11 @@ class Preem {
                 CLICK: 'CLICK',
                 PRESS: 'PRESS',
                 TYPE: 'TYPE'
+            },
+            DOWNLAODFORMAT: {
+                JSON: 'JSON',
+                HTML: 'HTML',
+                XML: 'XML'
             }
         };
     }

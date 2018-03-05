@@ -10218,11 +10218,8 @@ var Preem = function () {
             var sAppPath = this.oConfig.appPath;
             if (sAppPath) {
                 $(window).load(function () {
-                    //let oIframe = $('#iFrameName')[0];
-                    //oIframe.src = sAppPath;
                     var oIframe = _RendererManager2.default.createIframeAndAppendSrc(sAppPath);
                     oIframe.load(function () {
-                        //this.oConfig.appContext = oIframe.contentWindow.document;
                         $.get(this.oConfig.data, function (data) {
                             this.oConfig.recordMode = _NetworkManager2.default.CONSTANTS.RECORD_MODE.PLAY;
                             _NetworkManager2.default.startPlayMode.call(this, data);
@@ -10260,7 +10257,9 @@ var Preem = function () {
                 onStart: _oConfig ? _oConfig.onStart || null : null,
                 title: _oConfig.title,
                 appPath: _oConfig.networkManager && _oConfig.networkManager.appPath ? _oConfig.networkManager.appPath : "",
-                data: _oConfig.networkManager && _oConfig.networkManager.data ? _oConfig.networkManager.data : ""
+                data: _oConfig.networkManager && _oConfig.networkManager.data ? _oConfig.networkManager.data : "",
+                downloadReportFormat: _oConfig.downloadReport && _oConfig.downloadReport.format ? _oConfig.downloadReport.format : false,
+                downloadReportName: _oConfig.downloadReport && _oConfig.downloadReport.name ? _oConfig.downloadReport.name : false
             };
         }
     }, {
@@ -10393,6 +10392,8 @@ var Preem = function () {
                 this.clearTimeout();
             }.bind(currentTest)).always(function () {
                 this.currentTest.iFinishSingularTestTime = (window.performance.now() - this.currentTest.iStartSingularTestTime).toFixed(4);
+                console.log(this.preem.oConfig.downloadReportFormat);
+                console.log(this.preem.oConfig.downloadReportName);
                 _RendererManager2.default.renderSingularTest(this.currentTest.returnTestResults.description, this.currentTest.returnTestResults.status, currentTestModuleIndex, this.currentTest.iFinishSingularTestTime);
                 if (currentTestModule.isEmpty()) {
                     _RendererManager2.default.renderTestModuleTime(currentTestModuleIndex, currentTestModuleDuration + parseFloat(this.currentTest.iFinishSingularTestTime));
@@ -10538,6 +10539,11 @@ var Preem = function () {
                     CLICK: 'CLICK',
                     PRESS: 'PRESS',
                     TYPE: 'TYPE'
+                },
+                DOWNLAODFORMAT: {
+                    JSON: 'JSON',
+                    HTML: 'HTML',
+                    XML: 'XML'
                 }
             };
         }
@@ -21107,9 +21113,9 @@ jQuery.fn.andSelf = jQuery.fn.addBack;
 // https://github.com/jrburke/requirejs/wiki/Updating-existing-libraries#wiki-anon
 
 if ( true ) {
-	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = function() {
+	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = (function() {
 		return jQuery;
-	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+	}).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 }
 
