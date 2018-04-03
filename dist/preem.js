@@ -10324,13 +10324,18 @@ var Preem = function () {
                     this.oQueue.enqueue(this.oPreem.addDeferred(function (obj, sPassString, sFailsString) {
                         var applicationCtx = $('#iFrameName')[0];
                         if (obj.el && obj.el instanceof Function) {
-                            $(applicationCtx.contentWindow);
+                            //handle function
                             var applicationObj = obj.el(applicationCtx.contentWindow);
                             if (applicationObj) {
                                 if (obj.action) {
                                     Preem.trigger(applicationObj, obj.action);
                                 }
-                                applicationObj.click();
+                                return this._passTest(sPassString);
+                            }
+                        } else if (obj.el && obj.el instanceof Object) {
+                            // handle Object (ID, Class, Tag)
+
+                            if (this._handleObject(obj.el, applicationCtx.contentWindow.document)) {
                                 return this._passTest(sPassString);
                             }
                         }
@@ -10373,6 +10378,36 @@ var Preem = function () {
                     }.bind(this.oPreem), [obj, sPassString, sFailsString]));
                 }.bind(this)
             };
+        }
+    }, {
+        key: "_handleObject",
+        value: function _handleObject(obj, applicationCtx) {
+            var objID = obj.id ? applicationCtx.getElementById(obj.id) : true,
+                //if id is sending, find it, else obj is set for true for return false\true later on
+            objClass = obj.class ? applicationCtx.getElementsByClassName(obj.class) : true,
+                objTag = obj.tag ? applicationCtx.getElementsByTagName(obj.tag) : true;
+            if (!(objID === null && objClass.length > 0 && objTag.length > 0)) {
+                //if non of the elements found we return false - obj not found!
+                return false;
+            }
+            var arrClass = Array.prototype.slice.call(objClass, 0),
+                //convert getElementsByClassName and getElementsByTagName to array
+            arrTag = Array.prototype.slice.call(objTag, 0),
+                isElementFound = true;
+            if (objClass !== true && objID !== true) {
+                //if getElementsByClassName array contains getElementById obj
+                isElementFound = arrClass && arrClass.includes(objID) ? isElementFound && true : isElementFound && false;
+            }
+            if (objTag !== true && objID !== true) {
+                //if getElementsByTagName array contains getElementById obj
+                isElementFound = arrTag && arrTag.includes(objID) ? isElementFound && true : isElementFound && false;
+            }
+            return isElementFound;
+        }
+    }, {
+        key: "_handleFunction",
+        value: function _handleFunction(obj, applicationCtx) {
+            console.log(this);
         }
     }, {
         key: "beforeEach",
@@ -21113,9 +21148,9 @@ jQuery.fn.andSelf = jQuery.fn.addBack;
 // https://github.com/jrburke/requirejs/wiki/Updating-existing-libraries#wiki-anon
 
 if ( true ) {
-	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = (function() {
+	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = function() {
 		return jQuery;
-	}).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 }
 
