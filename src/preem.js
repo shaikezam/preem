@@ -3,6 +3,7 @@ window.$ = window.jQuery = require("jquery");
 window.sinon = require('sinon');
 import RendererManager from './RendererManager';
 import NetworkManager from './NetworkManager';
+import Utils from './Utils';
 import './style/preem.css';
 
 let instance = null;
@@ -13,6 +14,7 @@ class Preem {
         }
         this._setConfig(oConfig);
         this.aQueues = [];
+        this.results = {};
     }
 
     start() {
@@ -40,6 +42,10 @@ class Preem {
         if (this.oConfig.onFinish) {
             this.oConfig.onFinish();
         }
+        if (NetworkManager.getRecordMode() === NetworkManager.CONSTANTS.RECORD_MODE.RECORD) {
+            Utils.downloadTestReport(false, NetworkManager.oCalls);
+        }
+        Utils.downloadTestReport(true, Utils.downloadedObject);
     }
 
     _handleStart() {
@@ -175,22 +181,39 @@ class Preem {
     }
 
     _handleObject(obj, applicationCtx) {
-        let objID = obj.id ? applicationCtx.getElementById(obj.id) : true, //if id is sending, find it, else obj is set for true for return false\true later on
-                objClass = obj.class ? applicationCtx.getElementsByClassName(obj.class) : true,
-                objTag = obj.tag ? applicationCtx.getElementsByTagName(obj.tag) : true;
-        if (!(objID === null && objClass.length > 0 && objTag.length > 0)) { //if non of the elements found we return false - obj not found!
+        let objID = applicationCtx.getElementById(obj.id), //if id is sending, find it, else obj is set for true for return false\true later on
+                objClass = applicationCtx.getElementsByClassName(obj.class),
+                objTag = applicationCtx.getElementsByTagName(obj.tag);
+        if (objID === null && objClass === null && objTag === null) { //if non of the elements found we return false - obj not found!
             return false;
         }
         let arrClass = Array.prototype.slice.call(objClass, 0), //convert getElementsByClassName and getElementsByTagName to array
-                arrTag = Array.prototype.slice.call(objTag, 0),
-                isElementFound = true;
-        if (objClass !== true && objID !== true) { //if getElementsByClassName array contains getElementById obj
-            isElementFound = arrClass && arrClass.includes(objID) ? isElementFound && true : isElementFound && false;
+                arrTag = Array.prototype.slice.call(objTag, 0);
+        if (arrClass.length === 0 && arrTag.length === 0 && objID === null) {
+            return false;
         }
-        if (objTag !== true && objID !== true) { //if getElementsByTagName array contains getElementById obj
-            isElementFound = arrTag && arrTag.includes(objID) ? isElementFound && true : isElementFound && false;
+        let isElementFound = true;
+        if (arrClass.length > 0 && objID !== null) {
+            isElementFound = arrClass.includes(objID);
         }
-        return isElementFound;
+        if (arrTag.length > 0 && objID !== null) {
+            isElementFound = arrTag.includes(objID) && isElementFound;
+        }
+        if (objID !== null) {
+            return objID && isElementFound;
+        }
+        if ((arrClass.length > 1 && arrTag.length === 0) || (arrTag.length > 1 && arrClass.length === 0)) {
+            //throw ("Preem: can't find element in array of elements, be more specific!!!");
+            return false;
+        }
+        let numOfMatchedObjects = 0;
+        for (let i = 0; i < arrClass.length; i++) {
+            let elem = arrClass[i];
+            if (arrTag.includes(elem)) {
+                numOfMatchedObjects++;
+            }
+        }
+        return numOfMatchedObjects === 1 && isElementFound;
     }
 
     _handleFunction(obj, applicationCtx) {
@@ -212,15 +235,13 @@ class Preem {
             this.clearTimeout();
         }.bind(currentTest)).always(function () {
             this.currentTest.iFinishSingularTestTime = (window.performance.now() - this.currentTest.iStartSingularTestTime).toFixed(4);
-            console.log(this.preem.oConfig.downloadReportFormat);
-            console.log(this.preem.oConfig.downloadReportName);
+            //console.log(this.preem.oConfig.downloadReportFormat);
+            //console.log(this.preem.oConfig.downloadReportName);
+            Utils.saveResultsInInternalObject(this.currentTest.returnTestResults);
             RendererManager.renderSingularTest(this.currentTest.returnTestResults.description, this.currentTest.returnTestResults.status, currentTestModuleIndex, this.currentTest.iFinishSingularTestTime);
             if (currentTestModule.isEmpty()) {
                 RendererManager.renderTestModuleTime(currentTestModuleIndex, currentTestModuleDuration + parseFloat(this.currentTest.iFinishSingularTestTime));
                 if (currentTestModuleIndex === testModules.length - 1) {
-                    if (NetworkManager.getRecordMode() === NetworkManager.CONSTANTS.RECORD_MODE.RECORD) {
-                        NetworkManager.downlaodDataFile();
-                    }
                     this.preem._handleDone();
                     return;
                 } else {

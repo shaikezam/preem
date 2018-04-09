@@ -1,7 +1,10 @@
+import Utils from './Utils';
 export default class RendererManager {
+        
     static renderTestTitle(title) {
         let oDate = new Date();
         title = title + ' ' + oDate.toLocaleDateString() + ' ' + oDate.toLocaleTimeString();
+        Utils.setDateAndTitle(title, oDate);
         $('body').append('<h1>' + title + '</h1>');
     }
     static renderTestModule(description, index) {
