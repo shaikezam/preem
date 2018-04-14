@@ -1,3 +1,5 @@
+let jsonxml = require('jsontoxml');
+
 export default class Utils {
     static isTouced = false;
     static downloadedObject = {};
@@ -12,8 +14,12 @@ export default class Utils {
         this.downloadedObject['Test Date'] = date;
     }
 
-    static downloadTestReport(bool, data) {
-        let blob = new Blob([JSON.stringify(data)], {
+    static downloadTestReport(bool, data, downloadReportFormat) {
+        if (!(bool && Object.values(Preem.CONSTANTS.DOWNLAODFORMAT).indexOf(downloadReportFormat.toString().toUpperCase()) > -1)) {
+            //throw ("Preem: can't find element in array of elements, be more specific!!!");
+        }
+        let xml = jsonxml(JSON.stringify(data));
+        let blob = new Blob([xml], {
             type: 'application/octet-stream'
         }),
                 url = URL.createObjectURL(blob),
@@ -25,7 +31,7 @@ export default class Utils {
                     suffix = 'json';
         } else {
             fileName = 'test_report',
-                    suffix = 'json';
+                    suffix = downloadReportFormat;
         }
         link.setAttribute('download', fileName + '.' + suffix);
         console.info("Download file");

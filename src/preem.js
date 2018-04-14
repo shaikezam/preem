@@ -45,7 +45,7 @@ class Preem {
         if (NetworkManager.getRecordMode() === NetworkManager.CONSTANTS.RECORD_MODE.RECORD) {
             Utils.downloadTestReport(false, NetworkManager.oCalls);
         }
-        Utils.downloadTestReport(true, Utils.downloadedObject);
+        Utils.downloadTestReport(true, Utils.downloadedObject, this.oConfig.downloadReportFormat);
     }
 
     _handleStart() {
