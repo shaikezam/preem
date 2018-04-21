@@ -6,6 +6,10 @@ Lightweight, easy-to-use JavaScript test library
 - [Usage](#usage)
     * [Using browser](#using-browser)
     * [Using NPM](#using-npm)
+- [Preem Capabilities](#preem-capabilities)
+    * [DOM elements manipulations](#dom-elements-manipulations)
+    * [Network Manager](#network-manager)
+    * [Reports downloading](#reports-downloading)
 - [API](#api)
     * [Preem constructor](#preem-constructor)
     * [testModule function](#testmodule-function)
@@ -37,6 +41,25 @@ let Preem = require('preem');
 
 let preem = new Preem();
 ```
+
+## Preem Capabilities
+
+### DOM elements manipulations
+
+With Preem, user can search or make actions on DOM elements with simple, intuitive and easy to understand API.
+
+### Network Manager
+
+No need an available server when running tests.
+With Preem user can record and play the requests and responses to\from the server using the integrated Network Manager.
+In the Preem constructure, user need to pass the path of the *data.json* file.
+This fils contains all requests and responses in *JSON* format.
+In the begging of the test, Preem try to find the *data.json* file:
+   - If found it - no request will sent to the server, all load from the file.
+   - Else - all requests will send to the server and when the test will finish, a *data.json* file will be download.
+
+### Reports downloading
+
 ## API
 
 ### Preem constructor
