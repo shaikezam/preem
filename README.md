@@ -45,18 +45,49 @@ let preem = new Preem();
 
 #### Preem constructor
 
-Preem constructor parameters (**Not mandatory** to pass an object, have default values):
+Preem constructor parameters:
 
 ```javascript
 "use strict";
 
 let preem = new Preem({
-    type: //type of the test: [Preem.CONSTANTS.TESTTYPE.SYNC || Preem.CONSTANTS.TESTTYPE.ASYNC], default Preem.CONSTANTS.TESTTYPE.SYNC
-    onStart: function() {
+    networkManager: {
+        appPath: //path of the application starting page (probably at '/')
+        data: //path of the data file that contains the requests and responses to the server
+    },
+    downloadReport: {
+        format: //Preem.CONSTANTS.DOWNLAODFORMAT.XML or Preem.CONSTANTS.DOWNLAODFORMAT.JSON
+    },
+    title: //title of the test
+    onStart: function () {
         //callback function, fires before starting the test, default null
     },
-    onFinish: function() {
+    onFinish: function () {
         //callback function, fires after finishing the test, default null
+    }
+});
+```
+
+Preem constructor for example:
+
+```javascript
+"use strict";
+
+let preem = new Preem({
+    type: Preem.CONSTANTS.TESTTYPE.SYNC,
+    networkManager: {
+        appPath: "/",
+        data: "data/data.json"
+    },
+    downloadReport: {
+        format: Preem.CONSTANTS.DOWNLAODFORMAT.XML
+    },
+    title: "Preem demonstration",
+    onStart: function () {
+        console.log("***TESTS STARTED***");
+    },
+    onFinish: function () {
+        console.log("***TESTS FINISHED***");
     }
 });
 ```
