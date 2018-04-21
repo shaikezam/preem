@@ -144,7 +144,6 @@ preem.testModule("Test contacts list", function (beforeEach, when, then) {
 ```
 
 **beforeEach**: receives a callback function that can perform operations before each *when*, *then* function
-    
 **when** \ **then**: function to perform manipulations on DOM elements, need to called to *iCanSeeElement* that receives:
 - el - can be function or element:
    - function - receives as parameter *app* that can serach for element via *jQuery* or with the *document* global object.
@@ -167,108 +166,29 @@ Function for starting the test - **need to be called after writing all the tests
 
 ## Examples
 
-### Primitive types testing:
-
-```javascript
+```html
 "use strict";
 
-preem.testModule("Test primitive types", function(beforeEach, checkIf) {
+<!doctype html>
 
-    beforeEach(function() {
-        console.log("Before each checkIf");
-    });
+<html lang="en">
 
-    checkIf(true).isEqualTo(true, "true is equal to true", "true isn't equal to true"); // true is equal to true
+    <head>
+        <meta charset="utf-8">
 
-    checkIf('Hello').isNotEqualTo('World', "Strings aren't equal", "Strings are equal"); // Strings aren't equal
+        <title>PreemJS</title>
+        
+        <script src="https://cdn.rawgit.com/shaikezam/preem/master/preem_browser.js"></script> 
+        <script src="test.js"></script>
 
-});
+    </head>
 
-preem.start();
-```
-### Array testing:
-
-```javascript
-"use strict";
-
-preem.testModule("Test Arrays", function(beforeEach, checkIf) {
-
-    beforeEach(function() {
-        console.log("Before each checkIf");
-    });
-
-    checkIf(['Hello', 'World', 'foo']).isIncludes('Hello', "String in array", "String not in array"); // String in array 
-
-    checkIf(['Hello', 'World', 'foo']).isNotIncludes('bla', "String not in array", "String in array"); // String not in array
-
-});
-
-preem.start();
-```
+    <body>
+    </body>
     
-### Objetcs testing:
+    
+</html>
 
-```javascript
-"use strict";
-
-preem.testModule("Test Objects", function(beforeEach, checkIf) {
-
-    beforeEach(function() {
-        console.log("Before each checkIf");
-    });
-
-    checkIf({
-        a1: 'b1',
-        a2: 'b2'
-    }).isDeepEqualTo({
-        a1: 'b1',
-        a2: 'b2'
-    }, "Object are equal", "Object arn't equal"); // Object are equal
-
-});
-
-preem.start();
-```
-
-### User's predefined criteria:
-
-```javascript
-"use strict";
-
-preem.testModule("Test by my own criteria", function(beforeEach, checkIf) {
-
-    function fnPositiveNumber(iNum) {
-        return iNum > 0;
-    };
-
-    function fnComparingNumbers(firstNumber, secondNumber) {
-        return firstNumber === secondNumber;
-    };
-
-    function fnNegativeNumbers(aNum) {
-        for (let i = 0; i < aNum.length; i++) {
-            if (aNum[i] > 0) {
-                return false;
-            }
-        }
-        return true;
-    };
-
-    function fnNumberInArray(aNum, iNum) {
-        return aNum.indexOf(iNum) > -1;
-    };
-
-    checkIf(1).inMyCriteria(fnPositiveNumber, "Number is positive", "Number isn't positive");
-
-    checkIf(1, 1).inMyCriteria(fnComparingNumbers, "Numbers are equal", "Number arn't equal");
-
-    checkIf([-1, -2, -3]).inMyCriteria(fnNegativeNumbers, "Numbers are negative", "Number arn't negative");
-
-    checkIf([-1, -2, -3], -1).inMyCriteria(fnNumberInArray, "-1 in array", "-1 isn't in array");
-
-});
-
-preem.start();
 ```
 
 *Stay tuned for more updates soon*
