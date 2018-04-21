@@ -99,17 +99,54 @@ Function for creating tests that have a common topic
 ```javascript
 "use strict";
 
-preem.testModule(/* test module description */, function(beforeEach, checkIf) {
+preem.testModule(/* test module description */, function (beforeEach, when, then) {
 
     
 });
 
 ```
 
-**beforeEach**: receives a callback function that can perform operations before each CheckIf function
+testModule for exaxmple:
+
+```javascript
+"use strict";
+
+preem.testModule("Test contacts list", function (beforeEach, when, then) {
+
+    beforeEach(function () {
+        console.log("Before each checkIf");
+    });
+
+    when().iCanSeeElement({
+        el: function (app) {
+            return app.document.getElementById('main-panel');
+        }
+    }, "Can see the main panel", "Can't see the main panel");
     
-**checkIf**: receives the tested parameter, returns an object of predefined functions:
-- isEqualTo - test *checkIf* paramter is equal to another parameter (only Primitive types).
+    when().iCanSeeElement({
+        el: {
+            id: "main-panel",
+            class: "btn btn-primary"
+        }
+
+    }, "Can see the main panel", "Can't see the main panel");
+
+    then().iCanSeeElement({
+        el: function (app) {
+            return app.$('#contacts-list')[0];
+        },
+        action: Preem.CONSTANTS.ACTIONS.CLICK
+    }, "can see the main panel", "can't see the main panel");
+    
+});
+
+```
+
+**beforeEach**: receives a callback function that can perform operations before each *when*, *then* function
+    
+**when** \ **then**: function to perform manipulations on DOM elements, need to called to *iCanSeeElement* that receives:
+- el - can be function or element.
+   - function - receives as paramater *app* the can serach for element via *jQuery* or with the *document* global object
 - isNotEqualTo - test *checkIf* paramter is not equal to another parameter (only Primitive types).
 - isIncludes - test *checkIf* array contains a parameter.
 - isNotIncludes - test *checkIf* array don't contains a parameter.
