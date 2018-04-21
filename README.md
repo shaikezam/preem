@@ -139,7 +139,8 @@ preem.testModule("Test contacts list", function (beforeEach, when, then) {
 
 ```
 
-**beforeEach**: receives a callback function that can perform operations before each *when*, *then* function
+**beforeEach**: receives a callback function that can perform operations before each *when*, *then* functions
+
 **when** \ **then**: function to perform manipulations on DOM elements, need to called to *iCanSeeElement* that receives:
 - el - can be function or element:
    - function - receives as parameter *app* that can serach for element via *jQuery* or with the *document* global object.
