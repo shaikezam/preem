@@ -6,7 +6,7 @@ Lightweight, easy-to-use JavaScript test library
 - [Usage](#usage)
     * [Using browser](#using-browser)
     * [Using NPM](#using-npm)
-- [Usage & API](#usage--api)
+- [API](#api)
     * [Preem constructor](#preem-constructor)
     * [testModule function](#testmodule-function)
     * [start function](#start-function)
