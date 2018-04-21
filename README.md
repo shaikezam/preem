@@ -126,7 +126,8 @@ preem.testModule("Test contacts list", function (beforeEach, when, then) {
     when().iCanSeeElement({
         el: {
             id: "main-panel",
-            class: "btn btn-primary"
+            class: "btn btn-primary",
+            tag: "div"
         }
 
     }, "Can see the main panel", "Can't see the main panel");
@@ -145,14 +146,13 @@ preem.testModule("Test contacts list", function (beforeEach, when, then) {
 **beforeEach**: receives a callback function that can perform operations before each *when*, *then* function
     
 **when** \ **then**: function to perform manipulations on DOM elements, need to called to *iCanSeeElement* that receives:
-- el - can be function or element.
-   - function - receives as paramater *app* the can serach for element via *jQuery* or with the *document* global object
-- isNotEqualTo - test *checkIf* paramter is not equal to another parameter (only Primitive types).
-- isIncludes - test *checkIf* array contains a parameter.
-- isNotIncludes - test *checkIf* array don't contains a parameter.
-- isDeepEqualTo - test *checkIf* object is equal to another object.
-- isNotDeepEqualTo - test *checkIf* object is not equal to another object.
-- **inMyCriteria** - test *checkIf* object\s is not in predefined condition, need to pass the function as the 1st argument - see example in next.
+- el - can be function or element:
+   - function - receives as parameter *app* that can serach for element via *jQuery* or with the *document* global object.
+   - object - receives three parameters: *id*, *class* and *tag* for searching and element in the DOM
+- action - mostley need to be in the then function (for better *TDD*), receives constants's Preem actions (more will come in future):
+   - Preem.CONSTANTS.ACTIONS.CLICK
+   - Preem.CONSTANTS.ACTIONS.PRESS
+   - Preem.CONSTANTS.ACTIONS.TYPE
 
 #### start function:
 
