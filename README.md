@@ -6,10 +6,10 @@ Lightweight, easy-to-use JavaScript test library
 - [Usage](#usage)
     * [Using browser](#using-browser)
     * [Using NPM](#using-npm)
-    * [Usage & API](#usage--api)
-        + [Preem constructor](#preem-constructor)
-        + [testModule function](#testmodule-function)
-        + [start function](#start-function)
+- [Usage & API](#usage--api)
+    * [Preem constructor](#preem-constructor)
+    * [testModule function](#testmodule-function)
+    * [start function](#start-function)
 - [Examples](#examples)
 - [License](#license)
 
@@ -37,9 +37,9 @@ let Preem = require('preem');
 
 let preem = new Preem();
 ```
-### Usage & API
+## API
 
-#### Preem constructor
+### Preem constructor
 
 Preem constructor parameters:
 
@@ -88,7 +88,7 @@ let preem = new Preem({
 });
 ```
 
-#### testModule function:
+### testModule function:
 
 Function for creating tests that have a common topic
 
@@ -150,7 +150,7 @@ preem.testModule("Test contacts list", function (beforeEach, when, then) {
    - Preem.CONSTANTS.ACTIONS.PRESS
    - Preem.CONSTANTS.ACTIONS.TYPE
 
-#### start function:
+### start function:
 
 ```javascript
 "use strict";
@@ -166,7 +166,6 @@ Function for starting the test - **need to be called after writing all the tests
 All tests need to run via HTML page
 
 ```html
-"use strict";
 
 <!doctype html>
 
