@@ -11,10 +11,6 @@ Lightweight, easy-to-use JavaScript test library
         + [testModule function](#testmodule-function)
         + [start function](#start-function)
 - [Examples](#examples)
-    * [Primitive types testing](#primitive-types-testing)
-    * [Array testing](#array-testing)
-    * [Objetcs testing](#objetcs-testing)
-    * [User's predefined criteria](#users-predefined-criteria)
 - [License](#license)
 
 ## Usage
@@ -166,6 +162,8 @@ Function for starting the test - **need to be called after writing all the tests
 
 ## Examples
 
+All tests need to run via HTML page
+
 ```html
 "use strict";
 
@@ -190,6 +188,9 @@ Function for starting the test - **need to be called after writing all the tests
 </html>
 
 ```
+
+Please look at [Contacts Application test](https://github.com/shaikezam/Contacts-Application/blob/master/public/test/test.js).
+
 
 *Stay tuned for more updates soon*
 
