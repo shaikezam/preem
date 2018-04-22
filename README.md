@@ -60,9 +60,9 @@ In the begging of the test, Preem try to find the *data.json* file:
 
 ### Reports downloading
 
-With Preem, user can download test reports with the formats:
-   - Preem.CONSTANTS.DOWNLAODFORMAT.JSON - "JSON"
-   - Preem.CONSTANTS.DOWNLAODFORMAT.XML - "XML"
+With Preem, user can download test reports with the following formats (via the constructure):
+   - **Preem.CONSTANTS.DOWNLAODFORMAT.JSON** - "JSON"
+   - **Preem.CONSTANTS.DOWNLAODFORMAT.XML** - "XML"
 In the future, HTML format will be available.
 
 ## API
