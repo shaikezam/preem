@@ -55,10 +55,15 @@ With Preem user can record and play the requests and responses to\from the serve
 In the Preem constructure, user need to pass the path of the *data.json* file.
 This fils contains all requests and responses in *JSON* format.
 In the begging of the test, Preem try to find the *data.json* file:
-   - If found it - no request will sent to the server, all load from the file.
-   - Else - all requests will send to the server and when the test will finish, a *data.json* file will be download.
+   - If found - no request will sent to the server, all load from the file.
+   - Else - all requests will send to the server and when the test will finish, a *data.json* file will be downloaded.
 
 ### Reports downloading
+
+With Preem, user can download test reports with the formats:
+   - Preem.CONSTANTS.DOWNLAODFORMAT.JSON - "JSON"
+   - Preem.CONSTANTS.DOWNLAODFORMAT.XML - "XML"
+In the future, HTML format will be available.
 
 ## API
 
