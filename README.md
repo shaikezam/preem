@@ -6,15 +6,15 @@ Lightweight, easy-to-use JavaScript test library
 - [Usage](#usage)
     * [Using browser](#using-browser)
     * [Using NPM](#using-npm)
-    * [Usage & API](#usage--api)
-        + [Preem constructor](#preem-constructor)
-        + [testModule function](#testmodule-function)
-        + [start function](#start-function)
+- [Preem Capabilities](#preem-capabilities)
+    * [DOM elements manipulations](#dom-elements-manipulations)
+    * [Network Manager](#network-manager)
+    * [Reports downloading](#reports-downloading)
+- [API](#api)
+    * [Preem constructor](#preem-constructor)
+    * [testModule function](#testmodule-function)
+    * [start function](#start-function)
 - [Examples](#examples)
-    * [Primitive types testing](#primitive-types-testing)
-    * [Array testing](#array-testing)
-    * [Objetcs testing](#objetcs-testing)
-    * [User's predefined criteria](#users-predefined-criteria)
 - [License](#license)
 
 ## Usage
@@ -41,52 +41,144 @@ let Preem = require('preem');
 
 let preem = new Preem();
 ```
-### Usage & API
 
-#### Preem constructor
+## Preem Capabilities
 
-Preem constructor parameters (**Not mandatory** to pass an object, have default values):
+### DOM elements manipulations
+
+With Preem, user can search or make actions on DOM elements with simple, intuitive and easy to understand API.
+
+### Network Manager
+
+No need an available server when running tests.
+With Preem user can record and play the requests and responses to\from the server using the integrated Network Manager.
+In the Preem constructure, user need to pass the path of the *data.json* file.
+This fils contains all requests and responses in *JSON* format.
+In the begging of the test, Preem try to find the *data.json* file:
+   - If found - no request will sent to the server, all load from the file.
+   - Else - all requests will send to the server and when the test will finish, a *data.json* file will be downloaded.
+
+### Reports downloading
+
+With Preem, user can download test reports with the following formats (via the constructure):
+   - **Preem.CONSTANTS.DOWNLAODFORMAT.JSON** - "JSON"
+   - **Preem.CONSTANTS.DOWNLAODFORMAT.XML** - "XML"
+In the future, HTML format will be available.
+
+## API
+
+### Preem constructor
+
+Preem constructor parameters:
 
 ```javascript
 "use strict";
 
 let preem = new Preem({
-    type: //type of the test: [Preem.CONSTANTS.TESTTYPE.SYNC || Preem.CONSTANTS.TESTTYPE.ASYNC], default Preem.CONSTANTS.TESTTYPE.SYNC
-    onStart: function() {
+    networkManager: {
+        appPath: //path of the application starting page (probably at '/')
+        data: //path of the data file that contains the requests and responses to the server
+    },
+    downloadReport: {
+        format: //Preem.CONSTANTS.DOWNLAODFORMAT.XML or Preem.CONSTANTS.DOWNLAODFORMAT.JSON
+    },
+    title: //title of the test
+    onStart: function () {
         //callback function, fires before starting the test, default null
     },
-    onFinish: function() {
+    onFinish: function () {
         //callback function, fires after finishing the test, default null
     }
 });
 ```
 
-#### testModule function:
+Preem constructor for example:
+
+```javascript
+"use strict";
+
+let preem = new Preem({
+    type: Preem.CONSTANTS.TESTTYPE.SYNC,
+    networkManager: {
+        appPath: "/",
+        data: "data/data.json"
+    },
+    downloadReport: {
+        format: Preem.CONSTANTS.DOWNLAODFORMAT.XML
+    },
+    title: "Preem demonstration",
+    onStart: function () {
+        console.log("***TESTS STARTED***");
+    },
+    onFinish: function () {
+        console.log("***TESTS FINISHED***");
+    }
+});
+```
+
+### testModule function:
 
 Function for creating tests that have a common topic
 
 ```javascript
 "use strict";
 
-preem.testModule(/* test module description */, function(beforeEach, checkIf) {
+preem.testModule(/* test module description */, function (beforeEach, when, then) {
 
     
 });
 
 ```
 
-**beforeEach**: receives a callback function that can perform operations before each CheckIf function
-    
-**checkIf**: receives the tested parameter, returns an object of predefined functions:
-- isEqualTo - test *checkIf* paramter is equal to another parameter (only Primitive types).
-- isNotEqualTo - test *checkIf* paramter is not equal to another parameter (only Primitive types).
-- isIncludes - test *checkIf* array contains a parameter.
-- isNotIncludes - test *checkIf* array don't contains a parameter.
-- isDeepEqualTo - test *checkIf* object is equal to another object.
-- isNotDeepEqualTo - test *checkIf* object is not equal to another object.
-- **inMyCriteria** - test *checkIf* object\s is not in predefined condition, need to pass the function as the 1st argument - see example in next.
+testModule for exaxmple:
 
-#### start function:
+```javascript
+"use strict";
+
+preem.testModule("Test contacts list", function (beforeEach, when, then) {
+
+    beforeEach(function () {
+        console.log("Before each checkIf");
+    });
+
+    when().iCanSeeElement({
+        el: function (app) {
+            return app.document.getElementById('main-panel');
+        }
+    }, "Can see the main panel", "Can't see the main panel");
+    
+    when().iCanSeeElement({
+        el: {
+            id: "main-panel",
+            class: "btn btn-primary",
+            tag: "div"
+        }
+
+    }, "Can see the main panel", "Can't see the main panel");
+
+    then().iCanSeeElement({
+        el: function (app) {
+            return app.$('#contacts-list')[0];
+        },
+        action: Preem.CONSTANTS.ACTIONS.CLICK
+    }, "can see the main panel", "can't see the main panel");
+    
+});
+
+```
+
+**beforeEach**: receives a callback function that can perform operations before each *when*, *then* functions
+
+**when** \ **then**: function to perform manipulations on DOM elements, need to called to *iCanSeeElement* that receives:
+- el - can be function or element:
+   - function - receives as parameter *app* that can serach for element via *jQuery* or with the *document* global object.
+   - object - receives three parameters: *id*, *class* and *tag* for searching and element in the DOM
+- action - mostley need to be in the then function (for better *TDD*), receives constants's Preem actions (more will come in future):
+   - Preem.CONSTANTS.ACTIONS.CLICK
+   - Preem.CONSTANTS.ACTIONS.PRESS
+   - Preem.CONSTANTS.ACTIONS.TYPE
+
+### start function:
 
 ```javascript
 "use strict";
@@ -99,109 +191,34 @@ Function for starting the test - **need to be called after writing all the tests
 
 ## Examples
 
-### Primitive types testing:
+All tests need to run via HTML page
 
-```javascript
-"use strict";
+```html
 
-preem.testModule("Test primitive types", function(beforeEach, checkIf) {
+<!doctype html>
 
-    beforeEach(function() {
-        console.log("Before each checkIf");
-    });
+<html lang="en">
 
-    checkIf(true).isEqualTo(true, "true is equal to true", "true isn't equal to true"); // true is equal to true
+    <head>
+        <meta charset="utf-8">
 
-    checkIf('Hello').isNotEqualTo('World', "Strings aren't equal", "Strings are equal"); // Strings aren't equal
+        <title>PreemJS</title>
+        
+        <script src="https://cdn.rawgit.com/shaikezam/preem/master/preem_browser.js"></script> 
+        <script src="test.js"></script>
 
-});
+    </head>
 
-preem.start();
-```
-### Array testing:
-
-```javascript
-"use strict";
-
-preem.testModule("Test Arrays", function(beforeEach, checkIf) {
-
-    beforeEach(function() {
-        console.log("Before each checkIf");
-    });
-
-    checkIf(['Hello', 'World', 'foo']).isIncludes('Hello', "String in array", "String not in array"); // String in array 
-
-    checkIf(['Hello', 'World', 'foo']).isNotIncludes('bla', "String not in array", "String in array"); // String not in array
-
-});
-
-preem.start();
-```
+    <body>
+    </body>
     
-### Objetcs testing:
+    
+</html>
 
-```javascript
-"use strict";
-
-preem.testModule("Test Objects", function(beforeEach, checkIf) {
-
-    beforeEach(function() {
-        console.log("Before each checkIf");
-    });
-
-    checkIf({
-        a1: 'b1',
-        a2: 'b2'
-    }).isDeepEqualTo({
-        a1: 'b1',
-        a2: 'b2'
-    }, "Object are equal", "Object arn't equal"); // Object are equal
-
-});
-
-preem.start();
 ```
 
-### User's predefined criteria:
+Please look at [Contacts Application test](https://github.com/shaikezam/Contacts-Application/blob/master/public/test/test.js).
 
-```javascript
-"use strict";
-
-preem.testModule("Test by my own criteria", function(beforeEach, checkIf) {
-
-    function fnPositiveNumber(iNum) {
-        return iNum > 0;
-    };
-
-    function fnComparingNumbers(firstNumber, secondNumber) {
-        return firstNumber === secondNumber;
-    };
-
-    function fnNegativeNumbers(aNum) {
-        for (let i = 0; i < aNum.length; i++) {
-            if (aNum[i] > 0) {
-                return false;
-            }
-        }
-        return true;
-    };
-
-    function fnNumberInArray(aNum, iNum) {
-        return aNum.indexOf(iNum) > -1;
-    };
-
-    checkIf(1).inMyCriteria(fnPositiveNumber, "Number is positive", "Number isn't positive");
-
-    checkIf(1, 1).inMyCriteria(fnComparingNumbers, "Numbers are equal", "Number arn't equal");
-
-    checkIf([-1, -2, -3]).inMyCriteria(fnNegativeNumbers, "Numbers are negative", "Number arn't negative");
-
-    checkIf([-1, -2, -3], -1).inMyCriteria(fnNumberInArray, "-1 in array", "-1 isn't in array");
-
-});
-
-preem.start();
-```
 
 *Stay tuned for more updates soon*
 
