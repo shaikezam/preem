@@ -5,13 +5,13 @@ export default class Utils {
     static downloadedObject = {};
     static numOfTest = 1;
     static saveResultsInInternalObject(returnTestResults) {
-        this.downloadedObject["Test number: " + this.numOfTest.toString()] = returnTestResults;
+        this.downloadedObject["testNumber" + this.numOfTest.toString()] = returnTestResults;
         this.numOfTest++;
     }
 
     static setDateAndTitle(title, date) {
-        this.downloadedObject['Test Title'] = title;
-        this.downloadedObject['Test Date'] = date;
+        this.downloadedObject['testTitle'] = title;
+        this.downloadedObject['testDate'] = date;
     }
 
     static downloadTestReport(bool, data, downloadReportFormat) {
@@ -19,20 +19,17 @@ export default class Utils {
             //throw ("Preem: can't find element in array of elements, be more specific!!!");
         }
         let xml = jsonxml(JSON.stringify(data));
-        let blob = new Blob([xml], {
+        let blobOfXML = new Blob([xml], {
             type: 'application/octet-stream'
-        }),
-                url = URL.createObjectURL(blob),
-                link = document.createElement('a');
+        }), blobOfJSON = new Blob([JSON.stringify(data)], {
+            type: 'application/octet-stream'
+        }), url;
+        url = downloadReportFormat === Preem.CONSTANTS.DOWNLAODFORMAT.XML ? URL.createObjectURL(blobOfXML) : URL.createObjectURL(blobOfJSON);
+        let link = document.createElement('a');
         link.setAttribute('href', url);
         let suffix, fileName;
-        if (!bool) {
-            fileName = 'data',
-                    suffix = 'json';
-        } else {
-            fileName = 'test_report',
-                    suffix = downloadReportFormat;
-        }
+        fileName = bool === false ? 'data' : 'test_report';
+        suffix = downloadReportFormat;
         link.setAttribute('download', fileName + '.' + suffix);
         console.info("Download file");
         link.click();

@@ -1,6 +1,6 @@
 {
     "name": "preem",
-    "version": "0.0.61",
+    "version": "1.1.1",
     "description": "",
     "main": "preem.js",
     "scripts": {

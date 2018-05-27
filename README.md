@@ -98,7 +98,6 @@ Preem constructor for example:
 "use strict";
 
 let preem = new Preem({
-    type: Preem.CONSTANTS.TESTTYPE.SYNC,
     networkManager: {
         appPath: "/",
         data: "data/data.json"
