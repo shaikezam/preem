@@ -323,9 +323,6 @@ class Preem {
         fn(this.beforeEach.bind({
             oPreem: this,
             oQueue: this.aQueues[this.aQueues.length - 1]
-        }), this.checkIf.bind({
-            oPreem: this,
-            oQueue: this.aQueues[this.aQueues.length - 1]
         }), this.when.bind({
             oPreem: this,
             oQueue: this.aQueues[this.aQueues.length - 1]
