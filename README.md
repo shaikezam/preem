@@ -97,7 +97,7 @@ Preem constructor for example:
 ```javascript
 "use strict";
 
-let preem = new Preem({
+let preem = new Preem({ 
     networkManager: {
         appPath: "/",
         data: "data/data.json"
