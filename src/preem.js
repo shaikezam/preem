@@ -20,9 +20,9 @@ class Preem {
     start() {
         let sAppPath = this.oConfig.appPath;
         if (sAppPath) {
-            $(window).load(function () {
+            $(window).on("load", function () {
                 let oIframe = RendererManager.createIframeAndAppendSrc(sAppPath);
-                oIframe.load(function () {
+                oIframe.on("load", function () {
                     $.get(this.oConfig.data, function (data) {
                         this.oConfig.recordMode = NetworkManager.CONSTANTS.RECORD_MODE.PLAY;
                         NetworkManager.startPlayMode.call(this, data);
@@ -43,7 +43,7 @@ class Preem {
             this.oConfig.onFinish();
         }
         if (NetworkManager.getRecordMode() === NetworkManager.CONSTANTS.RECORD_MODE.RECORD) {
-            Utils.downloadTestReport(false, NetworkManager.oCalls);
+            NetworkManager.downlaodDataFile();
         }
         Utils.downloadTestReport(true, Utils.downloadedObject, this.oConfig.downloadReportFormat);
     }
@@ -71,110 +71,30 @@ class Preem {
         this._handleStart();
         this.testRunner(0, this.aQueues, 0);
     }
-
-    checkIf(oTestedObject) {
-        let aArguments = arguments;
-        //this.oQueue.beforeEach ? this.oQueue.beforeEach() : null;
-        return {
-            isEqualTo: function (actual, sPassString, sFailsString) {
-                this.oQueue.enqueue({
-                    fn: this.oPreem._fnEqual.bind(this.oPreem),
-                    args: [oTestedObject, actual, sPassString, sFailsString]
-                });
-            }.bind(this),
-            isNotEqualTo: function (actual, sPassString, sFailsString) {
-                this.oQueue.enqueue({
-                    fn: this.oPreem._fnNotEqual.bind(this.oPreem),
-                    args: [oTestedObject, actual, sPassString, sFailsString]
-                });
-            }.bind(this),
-            isIncludes: function (args, sPassString, sFailsString) {
-                this.oQueue.enqueue({
-                    fn: this.oPreem._fnInclude.bind(this.oPreem),
-                    args: [oTestedObject, args, sPassString, sFailsString]
-                });
-            }.bind(this),
-            isNotIncludes: function (args, sPassString, sFailsString) {
-                this.oQueue.enqueue({
-                    fn: this.oPreem._fnNotInclude.bind(this.oPreem),
-                    args: [oTestedObject, args, sPassString, sFailsString]
-                });
-            }.bind(this),
-            isDeepEqualTo: function (actual, sPassString, sFailsString) {
-                this.oQueue.enqueue({
-                    fn: this.oPreem._fnObjectsEquality.bind(this.oPreem),
-                    args: [oTestedObject, actual, sPassString, sFailsString]
-                });
-            }.bind(this),
-            inMyCriteria: function (fn, sPassString, sFailsString) {
-                let aParameters = [];
-                for (var i = 0; i < aArguments.length; i++) {
-                    aParameters.push(aArguments[i]);
-                }
-                this.oQueue.enqueue({
-                    fn: this.oPreem._inMyCriteria.bind(this.oPreem),
-                    args: [aParameters, fn, sPassString, sFailsString]
-                });
-            }.bind(this)
-        }
-    }
-
     when() {
         return {
             iCanSeeElement: function (obj, sPassString, sFailsString) {
                 this.oQueue.enqueue(this.oPreem.addDeferred(function (obj, sPassString, sFailsString) {
                     let applicationCtx = $('#iFrameName')[0];
+                    let bIsElementFound = false, applicationObj = null;
                     if (obj.el && obj.el instanceof Function) { //handle function
-                        let applicationObj = obj.el(applicationCtx.contentWindow);
+                        applicationObj = obj.el(applicationCtx.contentWindow);
                         if (applicationObj) {
-                            if (obj.action) {
-                                Preem.trigger(applicationObj, obj.action);
-                            }
-                            return this._passTest(sPassString);
+                            bIsElementFound = true;
                         }
                     } else if (obj.el && obj.el instanceof Object) { // handle Object (ID, Class, Tag)
-
-                        if (this._handleObject(obj.el, applicationCtx.contentWindow.document)) {
-                            return this._passTest(sPassString);
+                        applicationObj = this._handleObject(obj.el, applicationCtx.contentWindow.document);
+                        if (applicationObj) {
+                            bIsElementFound = true;
                         }
+                    }
+                    if (bIsElementFound) {
+                        if (obj.action) {
+                            Preem.trigger(applicationObj, obj.action, obj.text);
+                        }
+                        return this._passTest(sPassString);
                     }
                     return this._failTest(sFailsString);
-                }.bind(this.oPreem), [obj, sPassString, sFailsString]));
-            }.bind(this),
-            isObject: function (obj, sPassString, sFailsString) {
-                this.oQueue.enqueue(this.oPreem.addDeferred(function (obj, sPassString, sFailsString) {
-                    let applicationJquery = document.getElementById('iFrameName').contentWindow.$,
-                            applicationObj = applicationJquery('#' + obj.id);
-                    if (applicationObj !== null) {
-                        if (applicationObj.is(obj.property)) {
-                            return this._passTest(sPassString);
-                        }
-                        return this._failTest(sFailsString);
-                    }
-
-                }.bind(this.oPreem), [obj, sPassString, sFailsString]));
-            }.bind(this),
-            isElementTextEquals: function (obj, sPassString, sFailsString) {
-                this.oQueue.enqueue(this.oPreem.addDeferred(function (obj, sPassString, sFailsString) {
-                    let applicationObj = document.getElementById('iFrameName').contentWindow.document.getElementById(obj.id);
-                    if (applicationObj !== null) {
-                        if (applicationObj.innerHTML === obj.text) {
-                            return this._passTest(sPassString);
-                        }
-                        return this._failTest(sFailsString);
-                    }
-                }.bind(this.oPreem), [obj, sPassString, sFailsString]));
-            }.bind(this),
-            isElementContainsText: function (obj, sPassString, sFailsString) {
-                this.oQueue.enqueue(this.oPreem.addDeferred(function (obj, sPassString, sFailsString) {
-                    let applicationObj = document.getElementById('iFrameName').contentWindow.document.getElementById(obj.id);
-                    if (applicationObj !== null) {
-                        let sApplicationObj = applicationObj.innerHTML;
-                        if (sApplicationObj.includes(obj.text)) {
-                            return this._passTest(sPassString);
-                        }
-                        return this._failTest(sFailsString);
-                    }
                 }.bind(this.oPreem), [obj, sPassString, sFailsString]));
             }.bind(this)
         };
@@ -199,21 +119,25 @@ class Preem {
         if (arrTag.length > 0 && objID !== null) {
             isElementFound = arrTag.includes(objID) && isElementFound;
         }
-        if (objID !== null) {
-            return objID && isElementFound;
+        if (objID !== null && isElementFound) {
+            return objID;
         }
         if ((arrClass.length > 1 && arrTag.length === 0) || (arrTag.length > 1 && arrClass.length === 0)) {
             //throw ("Preem: can't find element in array of elements, be more specific!!!");
             return false;
         }
-        let numOfMatchedObjects = 0;
+        let numOfMatchedObjects = 0,
+                foundedElem;
         for (let i = 0; i < arrClass.length; i++) {
             let elem = arrClass[i];
             if (arrTag.includes(elem)) {
+                foundedElem = elem;
                 numOfMatchedObjects++;
             }
         }
-        return numOfMatchedObjects === 1 && isElementFound;
+        if (numOfMatchedObjects === 1 && isElementFound) {
+            return foundedElem;
+        }
     }
 
     _handleFunction(obj, applicationCtx) {
@@ -348,33 +272,47 @@ class Preem {
 
     static get CONSTANTS() {
         return {
-            TESTTYPE: {
-                SYNC: 'SYNC',
-                ASYNC: 'ASYNC'
-            },
             ACTIONS: {
                 CLICK: 'CLICK',
                 PRESS: 'PRESS',
-                TYPE: 'TYPE'
+                TYPE: 'TYPE',
+                FOCUS: 'FOCUS',
+                DBCLICK: 'DBCLICK',
+                BLUR: 'BLUR',
+                MOUSEOVER: 'MOUSEOVER'
             },
             DOWNLAODFORMAT: {
-                JSON: 'JSON',
-                HTML: 'HTML',
-                XML: 'XML'
+                JSON: 'json',
+                XML: 'xml'
             }
         };
     }
 
-    static trigger(obj, action) {
+    static trigger(obj, action, text) {
         switch (action) {
             case Preem.CONSTANTS.ACTIONS.CLICK:
                 obj.click();
                 break;
             case Preem.CONSTANTS.ACTIONS.TYPE:
+                if (obj instanceof jQuery) {
+                    obj = $(obj)[0];
+                }
+                obj.value = text;
+                obj.dispatchEvent( new CustomEvent( "change" ) );
+                break;
+            case Preem.CONSTANTS.ACTIONS.FOCUS:
+                obj.focus();
+                break;
+            case Preem.CONSTANTS.ACTIONS.DBCLICK:
                 obj.value = obj.text;
                 break;
+            case Preem.CONSTANTS.ACTIONS.BLUR:
+                obj.value = obj.text;
+                break;
+            case Preem.CONSTANTS.ACTIONS.MOUSEOVER:
+                $(obj).trigger("hover");
+                break;
             default:
-
                 break;
         }
     }

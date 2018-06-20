@@ -97,7 +97,7 @@ Preem constructor for example:
 ```javascript
 "use strict";
 
-let preem = new Preem({
+let preem = new Preem({ 
     networkManager: {
         appPath: "/",
         data: "data/data.json"
@@ -145,6 +145,13 @@ preem.testModule("Test contacts list", function (beforeEach, when, then) {
             return app.document.getElementById('main-panel');
         }
     }, "Can see the main panel", "Can't see the main panel");
+
+    then().iCanSeeElement({
+        el: function (app) {
+            return app.$('#contacts-list')[0];
+        },
+        action: Preem.CONSTANTS.ACTIONS.CLICK
+    }, "can see the main panel", "can't see the main panel");
     
     when().iCanSeeElement({
         el: {
@@ -159,7 +166,8 @@ preem.testModule("Test contacts list", function (beforeEach, when, then) {
         el: function (app) {
             return app.$('#contacts-list')[0];
         },
-        action: Preem.CONSTANTS.ACTIONS.CLICK
+        action: Preem.CONSTANTS.ACTIONS.TYPE,
+        text: "A text to be typed in input fields"
     }, "can see the main panel", "can't see the main panel");
     
 });
