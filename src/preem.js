@@ -43,7 +43,7 @@ class Preem {
             this.oConfig.onFinish();
         }
         if (NetworkManager.getRecordMode() === NetworkManager.CONSTANTS.RECORD_MODE.RECORD) {
-            Utils.downloadTestReport(false, NetworkManager.oCalls);
+            NetworkManager.downlaodDataFile();
         }
         Utils.downloadTestReport(true, Utils.downloadedObject, this.oConfig.downloadReportFormat);
     }
@@ -83,13 +83,14 @@ class Preem {
                             bIsElementFound = true;
                         }
                     } else if (obj.el && obj.el instanceof Object) { // handle Object (ID, Class, Tag)
-                        if (this._handleObject(obj.el, applicationCtx.contentWindow.document)) {
+                        applicationObj = this._handleObject(obj.el, applicationCtx.contentWindow.document);
+                        if (applicationObj) {
                             bIsElementFound = true;
                         }
                     }
                     if (bIsElementFound) {
                         if (obj.action) {
-                            Preem.trigger(applicationObj, obj.action);
+                            Preem.trigger(applicationObj, obj.action, obj.text);
                         }
                         return this._passTest(sPassString);
                     }
@@ -118,21 +119,25 @@ class Preem {
         if (arrTag.length > 0 && objID !== null) {
             isElementFound = arrTag.includes(objID) && isElementFound;
         }
-        if (objID !== null) {
-            return objID && isElementFound;
+        if (objID !== null && isElementFound) {
+            return objID;
         }
         if ((arrClass.length > 1 && arrTag.length === 0) || (arrTag.length > 1 && arrClass.length === 0)) {
             //throw ("Preem: can't find element in array of elements, be more specific!!!");
             return false;
         }
-        let numOfMatchedObjects = 0;
+        let numOfMatchedObjects = 0,
+                foundedElem;
         for (let i = 0; i < arrClass.length; i++) {
             let elem = arrClass[i];
             if (arrTag.includes(elem)) {
+                foundedElem = elem;
                 numOfMatchedObjects++;
             }
         }
-        return numOfMatchedObjects === 1 && isElementFound;
+        if (numOfMatchedObjects === 1 && isElementFound) {
+            return foundedElem;
+        }
     }
 
     _handleFunction(obj, applicationCtx) {
@@ -267,10 +272,6 @@ class Preem {
 
     static get CONSTANTS() {
         return {
-            TESTTYPE: {
-                SYNC: 'SYNC',
-                ASYNC: 'ASYNC'
-            },
             ACTIONS: {
                 CLICK: 'CLICK',
                 PRESS: 'PRESS',
@@ -281,20 +282,23 @@ class Preem {
                 MOUSEOVER: 'MOUSEOVER'
             },
             DOWNLAODFORMAT: {
-                JSON: 'JSON',
-                HTML: 'HTML',
-                XML: 'XML'
+                JSON: 'json',
+                XML: 'xml'
             }
         };
     }
 
-    static trigger(obj, action) {
+    static trigger(obj, action, text) {
         switch (action) {
             case Preem.CONSTANTS.ACTIONS.CLICK:
                 obj.click();
                 break;
             case Preem.CONSTANTS.ACTIONS.TYPE:
-                obj.value = obj.text;
+                if (obj instanceof jQuery) {
+                    obj = $(obj)[0];
+                }
+                obj.value = text;
+                obj.dispatchEvent( new CustomEvent( "change" ) );
                 break;
             case Preem.CONSTANTS.ACTIONS.FOCUS:
                 obj.focus();

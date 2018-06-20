@@ -10567,7 +10567,7 @@ var Preem = function () {
                 this.oConfig.onFinish();
             }
             if (_NetworkManager2.default.getRecordMode() === _NetworkManager2.default.CONSTANTS.RECORD_MODE.RECORD) {
-                _Utils2.default.downloadTestReport(false, _NetworkManager2.default.oCalls);
+                _NetworkManager2.default.downlaodDataFile();
             }
             _Utils2.default.downloadTestReport(true, _Utils2.default.downloadedObject, this.oConfig.downloadReportFormat);
         }
@@ -10615,13 +10615,14 @@ var Preem = function () {
                             }
                         } else if (obj.el && obj.el instanceof Object) {
                             // handle Object (ID, Class, Tag)
-                            if (this._handleObject(obj.el, applicationCtx.contentWindow.document)) {
+                            applicationObj = this._handleObject(obj.el, applicationCtx.contentWindow.document);
+                            if (applicationObj) {
                                 bIsElementFound = true;
                             }
                         }
                         if (bIsElementFound) {
                             if (obj.action) {
-                                Preem.trigger(applicationObj, obj.action);
+                                Preem.trigger(applicationObj, obj.action, obj.text);
                             }
                             return this._passTest(sPassString);
                         }
@@ -10654,21 +10655,25 @@ var Preem = function () {
             if (arrTag.length > 0 && objID !== null) {
                 isElementFound = arrTag.includes(objID) && isElementFound;
             }
-            if (objID !== null) {
-                return objID && isElementFound;
+            if (objID !== null && isElementFound) {
+                return objID;
             }
             if (arrClass.length > 1 && arrTag.length === 0 || arrTag.length > 1 && arrClass.length === 0) {
                 //throw ("Preem: can't find element in array of elements, be more specific!!!");
                 return false;
             }
-            var numOfMatchedObjects = 0;
+            var numOfMatchedObjects = 0,
+                foundedElem = void 0;
             for (var i = 0; i < arrClass.length; i++) {
                 var elem = arrClass[i];
                 if (arrTag.includes(elem)) {
+                    foundedElem = elem;
                     numOfMatchedObjects++;
                 }
             }
-            return numOfMatchedObjects === 1 && isElementFound;
+            if (numOfMatchedObjects === 1 && isElementFound) {
+                return foundedElem;
+            }
         }
     }, {
         key: "_handleFunction",
@@ -10810,13 +10815,17 @@ var Preem = function () {
         }
     }], [{
         key: "trigger",
-        value: function trigger(obj, action) {
+        value: function trigger(obj, action, text) {
             switch (action) {
                 case Preem.CONSTANTS.ACTIONS.CLICK:
                     obj.click();
                     break;
                 case Preem.CONSTANTS.ACTIONS.TYPE:
-                    obj.value = obj.text;
+                    if (obj instanceof jQuery) {
+                        obj = $(obj)[0];
+                    }
+                    obj.value = text;
+                    obj.dispatchEvent(new CustomEvent("change"));
                     break;
                 case Preem.CONSTANTS.ACTIONS.FOCUS:
                     obj.focus();
@@ -10838,10 +10847,6 @@ var Preem = function () {
         key: "CONSTANTS",
         get: function get() {
             return {
-                TESTTYPE: {
-                    SYNC: 'SYNC',
-                    ASYNC: 'ASYNC'
-                },
                 ACTIONS: {
                     CLICK: 'CLICK',
                     PRESS: 'PRESS',
@@ -10852,9 +10857,8 @@ var Preem = function () {
                     MOUSEOVER: 'MOUSEOVER'
                 },
                 DOWNLAODFORMAT: {
-                    JSON: 'JSON',
-                    HTML: 'HTML',
-                    XML: 'XML'
+                    JSON: 'json',
+                    XML: 'xml'
                 }
             };
         }
